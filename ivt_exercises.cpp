@@ -2,7 +2,8 @@
 // This example program compares the C syntax for linear and multidimensional arrays
 // Compilation: g++ -Wall -Wextra -pedantic -o ivt ivt_exercises.cpp
 
-
+#include<fstream>
+#include<cmath>
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -75,6 +76,46 @@ void store(const char* filename, float** image) {
     }
 }
 
+// Function to load a RAW image into a 2D array
+float** load(const char* filename) {
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+        std::cerr << "Error: Could not open file for reading: " << filename << std::endl;
+        return nullptr;
+    }
+
+    float** image = new float* [HEIGHT];
+    for (int i = 0; i < HEIGHT; ++i) {
+        image[i] = new float[WIDTH];
+        file.read(reinterpret_cast<char*>(image[i]), WIDTH * sizeof(float));
+    }
+
+    file.close();
+    if (file) {
+        std::cerr << "Error: Failed to read image from file." << std::endl;
+    }
+    else {
+        std::cout << "Image successfully loaded from " << filename << std::endl;
+    }
+
+    return image;
+}
+
+// Function to multiply two images pixel-by-pixel
+float** multiplyImages(float** image1, float** image2) {
+    float** result = new float* [HEIGHT];
+    for (int i = 0; i < HEIGHT; ++i) {
+        result[i] = new float[WIDTH];
+    }
+
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            result[y][x] = image1[y][x] * image2[y][x];
+        }
+    }
+
+    return result;
+}
 
 
 int main() {
@@ -93,19 +134,41 @@ int main() {
     delete [] image2D;
     delete [] image1D;
 
-    // Session 1 Part 2
-        // Generate the cosine pattern
-    float** image = generateCosinePattern();
+    // Generate the cosine pattern
+    float** cosinePattern = generateCosinePattern();
 
-    // Store the image to a RAW file
-    const char* filename = "cosine_pattern.raw";
-    storeRawImage(filename, image);
+    // Store the cosine pattern to a RAW file
+    const char* cosineFilename = "cosine_pattern.raw";
+    store(cosineFilename, cosinePattern);
+
+    // Load the parrot image
+    const char* parrotFilename = "parrot_256x256.raw";
+    float** parrotImage = load(parrotFilename);
+    if (!parrotImage) {
+        // Clean up cosine pattern memory if loading failed
+        for (int i = 0; i < HEIGHT; ++i) {
+            delete[] cosinePattern[i];
+        }
+        delete[] cosinePattern;
+        return 1;
+    }
+
+    // Multiply the parrot image with the cosine pattern
+    float** modifiedImage = multiplyImages(parrotImage, cosinePattern);
+
+    // Store the modified image to a RAW file
+    const char* modifiedFilename = "modified_parrot.raw";
+    store(modifiedFilename, modifiedImage);
 
     // Clean up dynamically allocated memory
     for (int i = 0; i < HEIGHT; ++i) {
-        delete[] image[i];
+        delete[] cosinePattern[i];
+        delete[] parrotImage[i];
+        delete[] modifiedImage[i];
     }
-    delete[] image;
+    delete[] cosinePattern;
+    delete[] parrotImage;
+    delete[] modifiedImage;
 
 
 
