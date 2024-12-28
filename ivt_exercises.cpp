@@ -1,6 +1,8 @@
 // Image and Video Technology, Colas Schretter <colas.schretter@vub.be>
 // This example program compares the C syntax for linear and multidimensional arrays
 // Compilation: g++ -Wall -Wextra -pedantic -o ivt ivt_exercises.cpp
+#include <random>
+#include <utility> // For std::pair
 
 #include<fstream>
 #include<cmath>
@@ -88,15 +90,18 @@ float** load(const char* filename) {
     for (int i = 0; i < HEIGHT; ++i) {
         image[i] = new float[WIDTH];
         file.read(reinterpret_cast<char*>(image[i]), WIDTH * sizeof(float));
+        if (!file) {
+            std::cerr << "Error: Failed to read image data at row " << i << " from file." << std::endl;
+            for (int j = 0; j <= i; ++j) {
+                delete[] image[j];
+            }
+            delete[] image;
+            return nullptr;
+        }
     }
 
     file.close();
-    if (file) {
-        std::cerr << "Error: Failed to read image from file." << std::endl;
-    }
-    else {
-        std::cout << "Image successfully loaded from " << filename << std::endl;
-    }
+    std::cout << "Image successfully loaded from " << filename << std::endl;
 
     return image;
 }
@@ -117,6 +122,93 @@ float** multiplyImages(float** image1, float** image2) {
     return result;
 }
 
+// Function to compute the Mean Squared Error (MSE) between two images
+float mse(float** image1, float** image2) {
+    float mse = 0.0f;
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            float diff = image1[y][x] - image2[y][x];
+            mse += diff * diff;
+        }
+    }
+    mse /= (WIDTH * HEIGHT);
+    return mse;
+}
+
+// Function to compute the Peak Signal-to-Noise Ratio (PSNR) between two images
+float psnr(float** image1, float** image2, float max) {
+    float mse_val = mse(image1, image2);
+    if (mse_val == 0) {
+        return INFINITY; // No error implies infinite PSNR
+    }
+    return 10.0f * log10((max * max) / mse_val);
+}
+
+float** generateUniformNoise(float minVal, float maxVal) {
+    float** image = new float* [HEIGHT];
+    for (int i = 0; i < HEIGHT; ++i) {
+        image[i] = new float[WIDTH];
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dist(minVal, maxVal);
+
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            image[y][x] = dist(gen);
+        }
+    }
+
+    return image;
+}
+
+// Function to generate a Gaussian distributed random noise image
+float** generateGaussianNoise(float mean, float stddev) {
+    float** image = new float* [HEIGHT];
+    for (int i = 0; i < HEIGHT; ++i) {
+        image[i] = new float[WIDTH];
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<float> dist(mean, stddev);
+
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            image[y][x] = dist(gen);
+        }
+    }
+
+    return image;
+}
+
+// Function to calculate the mean and variance of an image
+std::pair<float, float> calculateMeanAndVariance(float** image) {
+    float mean = 0.0f;
+    float variance = 0.0f;
+    int totalPixels = WIDTH * HEIGHT;
+
+    // Calculate mean
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            mean += image[y][x];
+        }
+    }
+    mean /= totalPixels;
+
+    // Calculate variance
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            float diff = image[y][x] - mean;
+            variance += diff * diff;
+        }
+    }
+    variance /= totalPixels;
+
+    return std::make_pair(mean, variance);
+}
+
 
 int main() {
     // create a two-dimensional array of 320x256 pixels
@@ -133,6 +225,8 @@ int main() {
     // free the dynamic memory allocations
     delete [] image2D;
     delete [] image1D;
+
+    // SESSION 1 PART 2
 
     // Generate the cosine pattern
     float** cosinePattern = generateCosinePattern();
@@ -153,6 +247,8 @@ int main() {
         return 1;
     }
 
+    // SESSION 1 PART 3
+
     // Multiply the parrot image with the cosine pattern
     float** modifiedImage = multiplyImages(parrotImage, cosinePattern);
 
@@ -170,6 +266,46 @@ int main() {
     delete[] parrotImage;
     delete[] modifiedImage;
 
+
+    // SESSION 2 PART 1
+
+    float** original_image = load("parrot_256x256.raw");
+    float** blurred_image = load("blurred.raw");
+    float** sharpened_image = load("sharpened_from_adding.raw");
+
+    float mse_sharpened = mse(original_image, sharpened_image);
+    float mse_blurred = mse(original_image, blurred_image);
+    float mse_normal = mse(original_image, original_image);
+    std::cout << "Mean Squared Error Sharpened (MSE): " << mse_sharpened << std::endl;
+    std::cout << "Mean Squared Error Normal (MSE): " << mse_normal << std::endl;
+    std::cout << "Mean Squared Error Blurred (MSE): " << mse_blurred << std::endl;
+
+    float psnr_blurred = psnr(original_image, blurred_image, 255);
+    float psnr_normal = psnr(original_image, original_image, 255);
+    float psnr_sharpened = psnr(original_image, sharpened_image, 255);
+    std::cout << "psnr blurred: " << psnr_blurred << std::endl;
+    std::cout << "psnr sharpened: " << psnr_sharpened << std::endl;
+    std::cout << "psnr normal: " << psnr_normal << std::endl;
+
+    // SESSION 2 PART 2
+        // Generate uniform noise
+    float** uniformNoise = generateUniformNoise(-0.5f, 0.5f);
+    const char* uniformFilename = "uniform_noise.raw";
+    store(uniformFilename, uniformNoise);
+
+    // Generate Gaussian noise
+    float** gaussianNoise = generateGaussianNoise(0.0f, 0.1443f); // Variance equivalent to uniform noise
+    const char* gaussianFilename = "gaussian_noise.raw";
+    store(gaussianFilename, gaussianNoise);
+
+
+    // Calculate mean and variance for uniform noise
+    std::pair<float, float> uniformStats = calculateMeanAndVariance(uniformNoise);
+    std::cout << "Uniform Noise - Mean: " << uniformStats.first << ", Variance: " << uniformStats.second << std::endl;
+
+    // Calculate mean and variance for Gaussian noise
+    std::pair<float, float> gaussianStats = calculateMeanAndVariance(gaussianNoise);
+    std::cout << "Gaussian Noise - Mean: " << gaussianStats.first << ", Variance: " << gaussianStats.second << std::endl;
 
 
 
