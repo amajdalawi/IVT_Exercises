@@ -210,6 +210,25 @@ std::pair<float, float> calculateMeanAndVariance(float** image) {
 }
 
 
+// Session 3 part 1
+
+float** createDctMatrix() {
+    float** matrix = new float* [WIDTH];
+    for (int x = 0; x < WIDTH; x++) {
+        matrix[x] = new float[HEIGHT];
+    }
+
+    for (int i = 0; i <WIDTH; i++) {
+        for (int y = 0; y < HEIGHT; y++) {
+            matrix[i][y] = cos(i * M_PI / 256 * (y + 0.5));
+        }
+    }
+
+    return matrix;
+}
+
+
+
 int main() {
     // create a two-dimensional array of 320x256 pixels
     float (*image2D)[256] = create_image(320);
@@ -307,6 +326,12 @@ int main() {
     std::pair<float, float> gaussianStats = calculateMeanAndVariance(gaussianNoise);
     std::cout << "Gaussian Noise - Mean: " << gaussianStats.first << ", Variance: " << gaussianStats.second << std::endl;
 
+
+
+    // Session 3
+    float** matrixImage = createDctMatrix();
+    const char* matrixfilename = "matrixfilename.raw";
+    store(matrixfilename, matrixImage);
 
 
 	return EXIT_SUCCESS;
