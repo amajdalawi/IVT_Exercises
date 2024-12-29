@@ -228,6 +228,130 @@ float** createDctMatrix() {
 }
 
 
+// function to normalize a matrix, with a given row and column numbers
+void normalizeMatrix(float** matrix, int rows, int columns) {
+    for (int i = 0; i < rows; i++) {
+        float total = 0;
+        for (int j = 0; j < rows; j++) {
+            total += matrix[i][j] * matrix[i][j];
+        }
+        float normalization = 1 / sqrt(total);
+        for (int j = 0; j < rows; j++) {
+            matrix[i][j] *= normalization;
+        }
+
+    }
+}
+
+// helper print function
+void print2DArray(float** arr, int rows, int cols) {
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            cout << arr[i][j] << " ";
+        }
+        cout << endl; // Move to the next line after each row
+    }
+}
+
+// Function to transpose a matrix
+float** transpose(float** matrix, int rows, int cols) {
+    float** transposed = new float* [cols];
+    for (int i = 0; i < cols; ++i) {
+        transposed[i] = new float[rows];
+    }
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            transposed[j][i] = matrix[i][j];
+        }
+    }
+
+    return transposed;
+}
+
+
+// Function to multiply two images pixel-by-pixel
+//float** multiplyMatricies(float** image1, float** image2) {
+//    float** result = new float* [HEIGHT];
+//    for (int i = 0; i < HEIGHT; ++i) {
+//        result[i] = new float[WIDTH];
+//    }
+//
+//    for (int y = 0; y < HEIGHT; ++y) {
+//        for (int x = 0; x < WIDTH; ++x) {
+//            result[y][x] = image1[y][x] * image2[y][x];
+//        }
+//    }
+//
+//    return result;
+//}
+
+float** multiplyMatrices(float** matrix1, int rows1, int cols1, float** matrix2, int rows2, int cols2) {
+    if (cols1 != rows2) {
+        std::cerr << "Error: Matrix dimensions do not allow multiplication." << std::endl;
+        return nullptr;
+    }
+
+    float** result = new float* [rows1];
+    for (int i = 0; i < rows1; ++i) {
+        result[i] = new float[cols2];
+        for (int j = 0; j < cols2; ++j) {
+            result[i][j] = 0.0f;
+        }
+    }
+
+    for (int i = 0; i < rows1; ++i) {
+        for (int j = 0; j < cols2; ++j) {
+            for (int k = 0; k < cols1; ++k) {
+                result[i][j] += matrix1[i][k] * matrix2[k][j];
+            }
+        }
+    }
+
+    return result;
+}
+
+// Session 3 part 2 (or part 8) 
+// Function to extract a specific row from a 2D matrix
+float* extractRow(float** matrix, int row, int cols) {
+    float* extractedRow = new float[cols];
+    for (int i = 0; i < cols; ++i) {
+        extractedRow[i] = matrix[row][i];
+    }
+    return extractedRow;
+}
+
+// Function to store a single row in RAW format
+void storeRawRow(const char* filename, float* row, int length) {
+    std::ofstream file(filename, std::ios::binary);
+    if (!file) {
+        std::cerr << "Error: Could not open file for writing row: " << filename << std::endl;
+        return;
+    }
+    file.write(reinterpret_cast<const char*>(row), length * sizeof(float));
+    file.close();
+    if (file) {
+        std::cout << "Row successfully saved to " << filename << std::endl;
+    }
+    else {
+        std::cerr << "Error: Failed to write row to file." << std::endl;
+    }
+}
+
+// Function to compute the DCT transform for a row
+float* transformRow(float* row, float** dctBasis, int length) {
+    float* dctCoefficients = new float[length];
+    for (int k = 0; k < length; ++k) {
+        dctCoefficients[k] = 0.0f;
+        for (int x = 0; x < length; ++x) {
+            dctCoefficients[k] += row[x] * dctBasis[k][x];
+        }
+    }
+    return dctCoefficients;
+}
+
+
+
 
 int main() {
     // create a two-dimensional array of 320x256 pixels
@@ -333,6 +457,14 @@ int main() {
     const char* matrixfilename = "matrixfilename.raw";
     store(matrixfilename, matrixImage);
 
+    print2DArray(matrixImage, WIDTH, HEIGHT);
+    cout << "#####" << endl;
+    normalizeMatrix(matrixImage, WIDTH, HEIGHT);
+    print2DArray(matrixImage, WIDTH, HEIGHT);
+
+    float ** transposed_matrix_image = transpose(matrixImage, 256, 256);
+    float** multiplied_matrix = multiplyMatrices(matrixImage,256,256, transposed_matrix_image, 256, 256);
+    store("multiplied_matrix_new.raw", multiplied_matrix);
 
 	return EXIT_SUCCESS;
 }
