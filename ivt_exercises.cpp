@@ -350,6 +350,30 @@ float* transformRow(float* row, float** dctBasis, int length) {
     return dctCoefficients;
 }
 
+float* restoreRow(float* row, float** transposedDctBasis, int length) {
+    float* restoredVals = new float[length];
+    for (int k = 0; k < length; ++k) {
+        restoredVals[k] = 0.0f;
+        for (int x = 0; x < length; ++x) {
+            restoredVals[k] += row[x] * transposedDctBasis[k][x];
+        }
+    }
+
+    return restoredVals;
+}
+
+float* thresholdCoefficients(float* dctCoefficients, int length, float threshold) {
+    float* thresholdedCoefficients = new float[length];
+    for (int i = 0; i < length; ++i) {
+        if (std::abs(dctCoefficients[i]) < threshold) {
+            thresholdedCoefficients[i] = 0.0f;
+        }
+        else {
+            thresholdedCoefficients[i] = dctCoefficients[i];
+        }
+    }
+    return thresholdedCoefficients;
+}
 
 
 
@@ -465,6 +489,24 @@ int main() {
     float ** transposed_matrix_image = transpose(matrixImage, 256, 256);
     float** multiplied_matrix = multiplyMatrices(matrixImage,256,256, transposed_matrix_image, 256, 256);
     store("multiplied_matrix_new.raw", multiplied_matrix);
+
+    // session 3 part 8
+    float* imageRow = extractRow(original_image, 10, 256);
+    storeRawRow("random_row.raw", imageRow, 256);
+    float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
+    storeRawRow("dct_random_row.raw", transformedImageRow, 256);
+    float* restoredImageRow = restoreRow(transformedImageRow, transposed_matrix_image, 256);
+    storeRawRow("resotred_random_row.raw", restoredImageRow, 256);
+
+
+
+    float* noiseRow = extractRow(uniformNoise, 10, 256);
+    storeRawRow("uniform_noise_random_row.raw", noiseRow, 256);
+    float* transformedNoiseRow = transformRow(noiseRow, matrixImage, 256);
+    storeRawRow("dct_noise_random_row.raw", transformedNoiseRow, 256);
+
+
+
 
 	return EXIT_SUCCESS;
 }
