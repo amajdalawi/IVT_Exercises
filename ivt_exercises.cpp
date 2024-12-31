@@ -375,6 +375,23 @@ float* thresholdCoefficients(float* dctCoefficients, int length, float threshold
     return thresholdedCoefficients;
 }
 
+// Function to compute MSE and PSNR between two rows
+float psnrRow(float* originalRow, float* restoredRow, int length) {
+    float mse = 0.0f;
+    for (int i = 0; i < length; ++i) {
+        float diff = originalRow[i] - restoredRow[i];
+        mse += diff * diff;
+    }
+    mse /= length;
+
+    if (mse == 0) {
+        return INFINITY; // No error implies infinite PSNR
+    }
+    
+    float maxPixelValue = 255.0f; // Assuming normalized pixel values in [0, 1]
+    float psnr = 10.0f * log10((maxPixelValue * maxPixelValue) / mse);
+    return psnr;
+}
 
 
 int main() {
