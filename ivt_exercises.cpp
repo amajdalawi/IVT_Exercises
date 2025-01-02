@@ -378,8 +378,16 @@ float* thresholdCoefficients(float* dctCoefficients, int length, float threshold
     return thresholdedCoefficients;
 }
 
+
+void printRow(float* someRow, int length) {
+    for (int i = 0; i < length; i++) {
+        cout << someRow[i] << " " << endl;
+    }
+    cout << "\n" << endl;
+}
+
 // Function to compute MSE and PSNR between two rows
-float psnrRow(float* originalRow, float* restoredRow, int length) {
+float psnrRow(float* originalRow, float* restoredRow, int length, float maxValue) {
     float mse = 0.0f;
     for (int i = 0; i < length; ++i) {
         float diff = originalRow[i] - restoredRow[i];
@@ -391,7 +399,7 @@ float psnrRow(float* originalRow, float* restoredRow, int length) {
         return INFINITY; // No error implies infinite PSNR
     }
     
-    float maxPixelValue = 255.0f; // Assuming normalized pixel values in [0, 1]
+    float maxPixelValue = maxValue; // Assuming normalized pixel values in [0, 1]
     float psnr = 10.0f * log10((maxPixelValue * maxPixelValue) / mse);
     return psnr;
 }
@@ -443,16 +451,6 @@ int main() {
     const char* modifiedFilename = "modified_parrot.raw";
     store(modifiedFilename, modifiedImage);
 
-    // Clean up dynamically allocated memory
-    for (int i = 0; i < HEIGHT; ++i) {
-        delete[] cosinePattern[i];
-        delete[] parrotImage[i];
-        delete[] modifiedImage[i];
-    }
-    delete[] cosinePattern;
-    delete[] parrotImage;
-    delete[] modifiedImage;
-
 
     // SESSION 2 PART 1
 
@@ -501,7 +499,7 @@ int main() {
     const char* matrixfilename = "matrixfilename.raw";
     store(matrixfilename, matrixImage);
 
-    print2DArray(matrixImage, WIDTH, HEIGHT);
+    //print2DArray(matrixImage, WIDTH, HEIGHT);
     cout << "#####" << endl;
     normalizeMatrix(matrixImage, WIDTH, HEIGHT);
     //print2DArray(matrixImage, WIDTH, HEIGHT);
@@ -511,23 +509,56 @@ int main() {
     store("multiplied_matrix_new.raw", multiplied_matrix);
 
     // session 3 part 8
-    float* imageRow = extractRow(original_image, 10, 256);
-    storeRawRow("random_row.raw", imageRow, 256);
-    float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
-    storeRawRow("dct_random_row.raw", transformedImageRow, 256);
-    float* thresholdedtransformedImageRow = thresholdCoefficients(transformedImageRow,256, 10);
-    float* restoredImageRow = restoreRow(thresholdedtransformedImageRow, transposed_matrix_image, 256);
-    storeRawRow("resotred_random_row.raw", restoredImageRow, 256);
+
+    cout << "SESSION 03 PART 08" << endl;
+    // we are going to be using threshold values 10, 50, and 100 for the row extracted from the parrot image
+    //float* imageRow = extractRow(original_image, 10, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
+    //float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
+    //float* thresholdedtransformedImageRow = thresholdCoefficients(transformedImageRow,256, 100);
+    //float* restoredImageRow = restoreRow(thresholdedtransformedImageRow, transposed_matrix_image, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
+    //float psnrVal = psnrRow(imageRow, restoredImageRow, 256, 255);
+    //std::cout << "PSNR here is: " << psnrVal << std::endl;
 
 
 
-    float* noiseRow = extractRow(uniformNoise, 10, 256);
-    storeRawRow("uniform_noise_random_row.raw", noiseRow, 256);
-    float* transformedNoiseRow = transformRow(noiseRow, matrixImage, 256);
-    storeRawRow("dct_noise_random_row.raw", transformedNoiseRow, 256);
+
+    // threshold values are going to be : 0.01, 0.5, 1
+    //float* noiseRow = extractRow(uniformNoise, 10, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_uniform_noise_random_row.raw", noiseRow, 256);
+    //float* transformedNoiseRow = transformRow(noiseRow, matrixImage, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_noise_random_row.raw", transformedNoiseRow, 256);
+    //float* thresholdedtransformedNoiseRow = thresholdCoefficients(transformedNoiseRow, 256, 1);
+    //float* restoredNoiseRow = restoreRow(thresholdedtransformedNoiseRow, transposed_matrix_image, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_noise_random_row.raw", restoredNoiseRow, 256);
+    //float psnrVal = psnrRow(noiseRow, restoredNoiseRow, 256, 1);
+    //std::cout << "PSNR here is: " << psnrVal << std::endl;
+
+    //
+    float* cosineRow = extractRow(cosinePattern, 10, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
+    float* transformedCosineRow = transformRow(cosineRow, matrixImage, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
+    float* restoredCosineRow = restoreRow(transformedCosineRow, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_cosine_random_row.raw", restoredCosineRow, 256);
+    float psnrVal = psnrRow(cosineRow, restoredCosineRow, 256, 1);
+    std::cout << "PSNR here is: " << psnrVal << std::endl;
 
 
 
+
+
+    // Clean up dynamically allocated memory
+    for (int i = 0; i < HEIGHT; ++i) {
+        delete[] cosinePattern[i];
+        delete[] parrotImage[i];
+        delete[] modifiedImage[i];
+    }
+    delete[] cosinePattern;
+    delete[] parrotImage;
+    delete[] modifiedImage;
 
 	return EXIT_SUCCESS;
 }
