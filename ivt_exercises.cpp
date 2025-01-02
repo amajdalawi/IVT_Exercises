@@ -364,14 +364,17 @@ float* restoreRow(float* row, float** transposedDctBasis, int length) {
 
 float* thresholdCoefficients(float* dctCoefficients, int length, float threshold) {
     float* thresholdedCoefficients = new float[length];
+    int count = 0;
     for (int i = 0; i < length; ++i) {
         if (std::abs(dctCoefficients[i]) < threshold) {
             thresholdedCoefficients[i] = 0.0f;
+            count++;
         }
         else {
             thresholdedCoefficients[i] = dctCoefficients[i];
         }
     }
+    std::cout << " The number  thresholded values for this signal is: " << count << std::endl;
     return thresholdedCoefficients;
 }
 
@@ -501,7 +504,7 @@ int main() {
     print2DArray(matrixImage, WIDTH, HEIGHT);
     cout << "#####" << endl;
     normalizeMatrix(matrixImage, WIDTH, HEIGHT);
-    print2DArray(matrixImage, WIDTH, HEIGHT);
+    //print2DArray(matrixImage, WIDTH, HEIGHT);
 
     float ** transposed_matrix_image = transpose(matrixImage, 256, 256);
     float** multiplied_matrix = multiplyMatrices(matrixImage,256,256, transposed_matrix_image, 256, 256);
@@ -512,7 +515,8 @@ int main() {
     storeRawRow("random_row.raw", imageRow, 256);
     float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
     storeRawRow("dct_random_row.raw", transformedImageRow, 256);
-    float* restoredImageRow = restoreRow(transformedImageRow, transposed_matrix_image, 256);
+    float* thresholdedtransformedImageRow = thresholdCoefficients(transformedImageRow,256, 10);
+    float* restoredImageRow = restoreRow(thresholdedtransformedImageRow, transposed_matrix_image, 256);
     storeRawRow("resotred_random_row.raw", restoredImageRow, 256);
 
 
