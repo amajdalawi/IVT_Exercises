@@ -407,16 +407,22 @@ float psnrRow(float* originalRow, float* restoredRow, int length, float maxValue
 
 // session 4
 float** transform2D(float** image, float** dctMatrix) {
+
+    // multiply A times the image X
     float** intermediateStep = multiplyMatrices(dctMatrix, 256, 256, image, 256, 256);
+    // tranpose the result
     float** firstTranspose = transpose(intermediateStep, 256, 256);
+    // multiply A times the transposed result
     float** secondStep = multiplyMatrices(dctMatrix, 256, 256, firstTranspose, 256, 256);
+    // now transpose it again and return it
     float** secondTranspose = transpose(secondStep, 256, 256);
     return secondTranspose;
 }
 
 float** restoreTransform2d(float** coefficients, float** idctMatrix, float** dctMatrix) {
+    // multiply A^T times the coeffieicnts Y
     float** firstStep = multiplyMatrices(idctMatrix, 256, 256, coefficients, 256, 256);
-    //float** firstTranspose = transpose(firstStep, 256, 256);
+    // now multiply the result of the first Step (call it C) by the original dct matrix A
     float** secondStep = multiplyMatrices(firstStep, 256, 256, dctMatrix, 256, 256);
     return secondStep;
 }
