@@ -405,6 +405,16 @@ float psnrRow(float* originalRow, float* restoredRow, int length, float maxValue
 }
 
 
+// session 4
+float** transform2D(float** image, float** dctMatrix) {
+    float** intermediateStep = multiplyMatrices(dctMatrix, 256, 256, image, 256, 256);
+    float** firstTranspose = transpose(intermediateStep, 256, 256);
+    float** secondStep = multiplyImages(dctMatrix, firstTranspose);
+    float** secondTranspose = transpose(secondStep, 256, 256);
+    return secondStep;
+}
+
+
 int main() {
     // create a two-dimensional array of 320x256 pixels
     float (*image2D)[256] = create_image(320);
@@ -515,33 +525,33 @@ int main() {
 
     // for the parrot image signal
     // we are going to be using threshold values 10, 50, and 100 for the row extracted from the parrot image
-    float* imageRow = extractRow(original_image, 10, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
-    float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
-    float* restoredImageRow = restoreRow(transformedImageRow, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
+    //float* imageRow = extractRow(original_image, 10, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
+    //float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
+    //float* restoredImageRow = restoreRow(transformedImageRow, transposed_matrix_image, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
     
     //Threshold 10
-    float* thresholdedtransformedImageRow01 = thresholdCoefficients(transformedImageRow,256, 10);
-    float* restoredThresholdedImageRow01 = restoreRow(thresholdedtransformedImageRow01, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredThresholdedImageRow01, 256);
-    float psnrVal01 = psnrRow(imageRow, restoredThresholdedImageRow01, 256, 255);
-    std::cout << "PSNR for thresholded signal with threshold val of 10 is: " << psnrVal01 << std::endl;
+    //float* thresholdedtransformedImageRow01 = thresholdCoefficients(transformedImageRow,256, 10);
+    //float* restoredThresholdedImageRow01 = restoreRow(thresholdedtransformedImageRow01, transposed_matrix_image, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredThresholdedImageRow01, 256);
+    //float psnrVal01 = psnrRow(imageRow, restoredThresholdedImageRow01, 256, 255);
+    //std::cout << "PSNR for thresholded signal with threshold val of 10 is: " << psnrVal01 << std::endl;
     
     // Threshold 50
-    float* thresholdedtransformedImageRow02 = thresholdCoefficients(transformedImageRow, 256, 50);
-    float* restoredThresholdedImageRow02 = restoreRow(thresholdedtransformedImageRow02, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredThresholdedImageRow02, 256);
-    float psnrVal02 = psnrRow(imageRow, restoredThresholdedImageRow02, 256, 255);
-    std::cout << "PSNR for thresholded signal with threshold val of 50 is: " << psnrVal02 << std::endl;
+    //float* thresholdedtransformedImageRow02 = thresholdCoefficients(transformedImageRow, 256, 50);
+    //float* restoredThresholdedImageRow02 = restoreRow(thresholdedtransformedImageRow02, transposed_matrix_image, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredThresholdedImageRow02, 256);
+    //float psnrVal02 = psnrRow(imageRow, restoredThresholdedImageRow02, 256, 255);
+    //std::cout << "PSNR for thresholded signal with threshold val of 50 is: " << psnrVal02 << std::endl;
     
     // Threshold 100
-    float* thresholdedtransformedImageRow03 = thresholdCoefficients(transformedImageRow, 256, 100);
-    float* restoredThresholdedImageRow03 = restoreRow(thresholdedtransformedImageRow03, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredThresholdedImageRow03, 256);
-    float psnrVal03 = psnrRow(imageRow, restoredThresholdedImageRow03, 256, 255);
-    std::cout << "PSNR for thresholded signal with threshold val of 100 is: " << psnrVal03 << std::endl;
+    //float* thresholdedtransformedImageRow03 = thresholdCoefficients(transformedImageRow, 256, 100);
+    //float* restoredThresholdedImageRow03 = restoreRow(thresholdedtransformedImageRow03, transposed_matrix_image, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredThresholdedImageRow03, 256);
+    //float psnrVal03 = psnrRow(imageRow, restoredThresholdedImageRow03, 256, 255);
+    //std::cout << "PSNR for thresholded signal with threshold val of 100 is: " << psnrVal03 << std::endl;
 
 
 
@@ -572,6 +582,10 @@ int main() {
     //std::cout << "PSNR here is: " << psnrVal << std::endl;
 
 
+
+
+    // SESSION 4
+    // PART 09
 
 
 
