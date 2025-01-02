@@ -512,15 +512,15 @@ int main() {
 
     cout << "SESSION 03 PART 08" << endl;
     // we are going to be using threshold values 10, 50, and 100 for the row extracted from the parrot image
-    //float* imageRow = extractRow(original_image, 10, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
-    //float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
-    //float* thresholdedtransformedImageRow = thresholdCoefficients(transformedImageRow,256, 100);
-    //float* restoredImageRow = restoreRow(thresholdedtransformedImageRow, transposed_matrix_image, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
-    //float psnrVal = psnrRow(imageRow, restoredImageRow, 256, 255);
-    //std::cout << "PSNR here is: " << psnrVal << std::endl;
+    float* imageRow = extractRow(original_image, 10, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
+    float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
+    float* thresholdedtransformedImageRow = thresholdCoefficients(transformedImageRow,256, 100);
+    float* restoredImageRow = restoreRow(thresholdedtransformedImageRow, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
+    float psnrVal = psnrRow(imageRow, restoredImageRow, 256, 255);
+    std::cout << "PSNR here is: " << psnrVal << std::endl;
 
 
 
@@ -537,14 +537,18 @@ int main() {
     //std::cout << "PSNR here is: " << psnrVal << std::endl;
 
     //
-    float* cosineRow = extractRow(cosinePattern, 10, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
-    float* transformedCosineRow = transformRow(cosineRow, matrixImage, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
-    float* restoredCosineRow = restoreRow(transformedCosineRow, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_cosine_random_row.raw", restoredCosineRow, 256);
-    float psnrVal = psnrRow(cosineRow, restoredCosineRow, 256, 1);
-    std::cout << "PSNR here is: " << psnrVal << std::endl;
+    //float* cosineRow = extractRow(cosinePattern, 10, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
+    //float* transformedCosineRow = transformRow(cosineRow, matrixImage, 256);
+    //printRow(transformedCosineRow, 256);
+
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
+    //float* thresholdedtransformedCosineRow = thresholdCoefficients(transformedCosineRow, 256, 0.9);
+    //printRow(thresholdedtransformedCosineRow, 256);
+    //float* restoredCosineRow = restoreRow(thresholdedtransformedCosineRow, transposed_matrix_image, 256);
+    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_cosine_random_row.raw", restoredCosineRow, 256);
+    //float psnrVal = psnrRow(cosineRow, restoredCosineRow, 256, 1);
+    //std::cout << "PSNR here is: " << psnrVal << std::endl;
 
 
 
