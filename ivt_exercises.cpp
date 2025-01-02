@@ -409,10 +409,19 @@ float psnrRow(float* originalRow, float* restoredRow, int length, float maxValue
 float** transform2D(float** image, float** dctMatrix) {
     float** intermediateStep = multiplyMatrices(dctMatrix, 256, 256, image, 256, 256);
     float** firstTranspose = transpose(intermediateStep, 256, 256);
-    float** secondStep = multiplyImages(dctMatrix, firstTranspose);
+    float** secondStep = multiplyMatrices(dctMatrix, 256, 256, firstTranspose, 256, 256);
     float** secondTranspose = transpose(secondStep, 256, 256);
+    return secondTranspose;
+}
+
+float** restoreTransform2d(float** coefficients, float** idctMatrix, float** dctMatrix) {
+    float** firstStep = multiplyMatrices(idctMatrix, 256, 256, coefficients, 256, 256);
+    //float** firstTranspose = transpose(firstStep, 256, 256);
+    float** secondStep = multiplyMatrices(firstStep, 256, 256, dctMatrix, 256, 256);
     return secondStep;
 }
+
+
 
 
 int main() {
@@ -586,7 +595,10 @@ int main() {
 
     // SESSION 4
     // PART 09
-
+    float** transformedImage = transform2D(parrotImage, matrixImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_dct_transformed_image.raw", transformedImage);
+    float** restoredImage = restoreTransform2d(transformedImage, transposed_matrix_image, matrixImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_transformed_image.raw", restoredImage);
 
 
     // Clean up dynamically allocated memory
