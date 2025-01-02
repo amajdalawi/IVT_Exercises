@@ -525,21 +525,21 @@ int main() {
     //Threshold 10
     float* thresholdedtransformedImageRow01 = thresholdCoefficients(transformedImageRow,256, 10);
     float* restoredThresholdedImageRow01 = restoreRow(thresholdedtransformedImageRow01, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredImageRow, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredThresholdedImageRow01, 256);
     float psnrVal01 = psnrRow(imageRow, restoredThresholdedImageRow01, 256, 255);
     std::cout << "PSNR for thresholded signal with threshold val of 10 is: " << psnrVal01 << std::endl;
     
     // Threshold 50
     float* thresholdedtransformedImageRow02 = thresholdCoefficients(transformedImageRow, 256, 50);
     float* restoredThresholdedImageRow02 = restoreRow(thresholdedtransformedImageRow02, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredImageRow, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredThresholdedImageRow02, 256);
     float psnrVal02 = psnrRow(imageRow, restoredThresholdedImageRow02, 256, 255);
     std::cout << "PSNR for thresholded signal with threshold val of 50 is: " << psnrVal02 << std::endl;
     
     // Threshold 100
     float* thresholdedtransformedImageRow03 = thresholdCoefficients(transformedImageRow, 256, 100);
     float* restoredThresholdedImageRow03 = restoreRow(thresholdedtransformedImageRow03, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredImageRow, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredThresholdedImageRow03, 256);
     float psnrVal03 = psnrRow(imageRow, restoredThresholdedImageRow03, 256, 255);
     std::cout << "PSNR for thresholded signal with threshold val of 100 is: " << psnrVal03 << std::endl;
 
