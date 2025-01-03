@@ -671,6 +671,82 @@ float** decode(float** quantizedImage, int size) {
 }
 
 // Session 05 Part 12
+float** getDC(float** image) {
+    float** dcImage = new float* [32];
+    for (int i = 0; i < 32; i++) {
+        dcImage[i] = new float[32];
+    }
+    for (int i = 0; i < 256; i += 8) {
+        for (int j = 0; j < 256; j += 8) {
+            dcImage[i / 8][j / 8] = image[i][j];
+        }
+    }
+
+    return dcImage;
+}
+
+
+// Function to delta encode DC terms
+void deltaEncodeDC(float** dcImage, int size, const char* filename) {
+    std::ofstream file(filename);
+    if (!file) {
+        std::cerr << "Error: Could not open file for writing delta encoded DC terms." << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+            float delta = 0.0f;
+            if (i == 0 && j == 0) {
+                delta = dcImage[i][j]; // First term
+            }
+            else if (j == 0) {
+                delta = dcImage[i][j] - dcImage[i - 1][size - 1]; // First in row
+            }
+            else {
+                delta = dcImage[i][j] - dcImage[i][j - 1]; // Subsequent in row
+            }
+            file << delta << " ";
+        }
+        file << "\n";
+    }
+
+    file.close();
+}
+
+// Function to decode delta encoded DC terms
+float** deltaDecodeDC(const char* filename, int size) {
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "Error: Could not open file for reading delta encoded DC terms." << std::endl;
+        return nullptr;
+    }
+
+    float** dcImage = new float* [size];
+    for (int i = 0; i < size; ++i) {
+        dcImage[i] = new float[size];
+    }
+
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; ++j) {
+            float delta;
+            file >> delta;
+            if (i == 0 && j == 0) {
+                dcImage[i][j] = delta; // First term
+            }
+            else if (j == 0) {
+                dcImage[i][j] = delta + dcImage[i - 1][size - 1]; // First in row
+            }
+            else {
+                dcImage[i][j] = delta + dcImage[i][j - 1]; // Subsequent in row
+            }
+        }
+    }
+
+    file.close();
+    return dcImage;
+}
+
 
 
 int main() {
@@ -868,6 +944,17 @@ int main() {
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part11_encodedImage.raw", encodedImage, 256, 256);
     float** decodedImage = decode(encodedImage, 256);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part11_decodedImage.raw", decodedImage, 256, 256);
+
+
+    // Session 05 Part 12
+    float** downsizedImage = getDC(encodedImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_dcImage.raw", downsizedImage, 32, 32);
+    deltaEncodeDC(downsizedImage, 32, "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt");
+    float** imageFromDelta = deltaDecodeDC("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt", 32);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_restored_image_final.raw", imageFromDelta, 32, 32);
+
+
+
 
     // Clean up dynamically allocated memory
     for (int i = 0; i < HEIGHT; ++i) {
