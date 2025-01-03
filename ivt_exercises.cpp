@@ -3,7 +3,7 @@
 // Compilation: g++ -Wall -Wextra -pedantic -o ivt ivt_exercises.cpp
 #include <random>
 #include <utility> // For std::pair
-
+#include <cstring>
 #include<fstream>
 #include<cmath>
 #include <iostream>
@@ -11,7 +11,7 @@ using std::cout;
 using std::endl;
 
 
-const float QTable[8][8] = {
+ float QTable[8][8] = {
         {16.0f, 11.0f, 10.0f, 16.0f, 24.0f, 40.0f, 51.0f, 61.0f},
         {12.0f, 12.0f, 14.0f, 19.0f, 26.0f, 58.0f, 60.0f, 55.0f},
         {14.0f, 13.0f, 16.0f, 24.0f, 40.0f, 57.0f, 69.0f, 56.0f},
@@ -73,14 +73,14 @@ float** generateCosinePattern() {
 }
 
 // Function to store the image in RAW format
-void store(const char* filename, float** image) {
+void store(const char* filename, float** image, int height, int width) {
     std::ofstream file(filename, std::ios::binary);
     if (!file) {
         std::cerr << "Error: Could not open file for writing: " << filename << std::endl;
         return;
     }
-    for (int y = 0; y < HEIGHT; ++y) {
-        file.write(reinterpret_cast<const char*>(image[y]), WIDTH * sizeof(float));
+    for (int y = 0; y < height; ++y) {
+        file.write(reinterpret_cast<const char*>(image[y]), width * sizeof(float));
     }
     file.close();
     if (file) {
@@ -443,6 +443,236 @@ float** restoreTransform2d(float** coefficients, float** idctMatrix, float** dct
 
 
 
+// Session 04 Part 10
+float** generate8Dct() {
+    float** matrix = new float* [8];
+    for (int x = 0; x < 8; x++) {
+        matrix[x] = new float[8];
+    }
+
+    for (int i = 0; i < 8; i++) {
+        for (int y = 0; y < 8; y++) {
+            matrix[i][y] = cos(i * M_PI / 8 * (y + 0.5));
+        }
+    }
+    normalizeMatrix(matrix, 8, 8);
+    return matrix;
+
+}
+
+
+float** applyDCT(float** block, float** dctMatrix) {
+    float** intermediateStep = multiplyMatrices(dctMatrix, 8, 8, block, 8, 8);
+    float** firstTranspose = transpose(intermediateStep, 8, 8);
+    float** secondStep = multiplyMatrices(dctMatrix, 8, 8, firstTranspose, 8, 8);
+    float** secondTranspose = transpose(secondStep, 8, 8);
+    return secondTranspose;
+
+}
+
+float** applyQ(float** transformedBlock) {
+    float** quantizedBlock = new float* [8];
+    for (int i = 0; i < 8; i++) {
+        quantizedBlock[i] = new float[8];
+        for (int j = 0; j < 8; j++) {
+            quantizedBlock[i][j] = std::round(transformedBlock[i][j] / QTable[i][j]);
+        }
+    }
+    return quantizedBlock;
+}
+
+float** applyIQ(float** quantizedBlock) {
+    float** reversedQBlock = new float* [8];
+    for (int i = 0; i < 8; i++) {
+        reversedQBlock[i] = new float[8];
+        for (int j = 0; j < 8; j++) {
+            reversedQBlock[i][j] = quantizedBlock[i][j] * QTable[i][j];
+        }
+    }
+    return reversedQBlock;
+}
+
+float** applyIDCT(float** reverseQBlock, float** idct, float** dct) {
+    float** firstStep = multiplyMatrices(idct, 8, 8, reverseQBlock, 8, 8);
+    float** secondStep = multiplyMatrices(firstStep, 8, 8, dct, 8, 8);
+    return secondStep;
+}
+
+void approximate(float** image, int size) {
+
+    // Generate DCT and IDCT matrices
+    float** dctMatrix = generate8Dct();
+    float** idctMatrix = transpose(dctMatrix,8,8);
+
+    // Create intermediate matrices for storing results
+    float** dctCoefficients = new float* [size];
+    float** quantizedCoefficients = new float* [size];
+    float** reverseQuantized = new float* [size];
+    float** restoredImage = new float* [size];
+    for (int i = 0; i < size; ++i) {
+        dctCoefficients[i] = new float[size];
+        quantizedCoefficients[i] = new float[size];
+        restoredImage[i] = new float[size];
+        reverseQuantized[i] = new float[size];
+        //memset(dctCoefficients[i], 0, size * sizeof(float));
+        //memset(quantizedCoefficients[i], 0, size * sizeof(float));
+        //memset(reverseQuantized[i], 0, size * sizeof(float));
+        //memset(restoredImage[i], 0, size * sizeof(float));
+        for (int j = 0; j < 256; j++) {
+            dctCoefficients[i][j] = 0.0f;
+            quantizedCoefficients[i][j] = 0.0f;
+            reverseQuantized[i][j] = 0.0f;
+            restoredImage[i][j] = 0.0f;
+        }
+    }
+
+    // Process each 8x8 block
+    for (int row = 0; row < size; row += 8) {
+        for (int col = 0; col < size; col += 8) {
+            // Extract 8x8 block
+            float** block = new float* [8];
+            for (int i = 0; i < 8; ++i) {
+                block[i] = new float[8];
+                for (int j = 0; j < 8; ++j) {
+                    block[i][j] = image[row + i][col + j];
+                }
+            }
+
+            // Apply DCT
+            float** dctBlock = applyDCT(block, dctMatrix);
+
+            // Quantize
+            float** quantizedBlock = applyQ(dctBlock);
+
+            // Inverse quantize
+            float** iqBlock = applyIQ(quantizedBlock);
+
+            // Apply IDCT
+            float** restoredBlock = applyIDCT(iqBlock, idctMatrix, dctMatrix);
+
+            // Save results back to the image matrices
+            for (int i = 0; i < 8; ++i) {
+                for (int j = 0; j < 8; ++j) {
+                    dctCoefficients[row + i][col + j] = dctBlock[i][j];
+                    quantizedCoefficients[row + i][col + j] = quantizedBlock[i][j];
+                    restoredImage[row + i][col + j] = restoredBlock[i][j];
+                    reverseQuantized[row + i][col + j] = iqBlock[i][j];
+                }
+            }
+
+            // Clean up block memory
+            for (int i = 0; i < 8; ++i) {
+                delete[] block[i];
+                delete[] dctBlock[i];
+                delete[] quantizedBlock[i];
+                delete[] iqBlock[i];
+                delete[] restoredBlock[i];
+            }
+            delete[] block;
+            delete[] dctBlock;
+            delete[] quantizedBlock;
+            delete[] iqBlock;
+            delete[] restoredBlock;
+        }
+    }
+
+    // Save intermediate results
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_coefficnet_image.raw", dctCoefficients, size, size);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_Quantized_image.raw", quantizedCoefficients, size, size);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_restoredImage.raw", restoredImage, size, size);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_IQ_image.raw", reverseQuantized, 256, 256);
+}
+
+float** encode(float** image, int size) {
+    float** dctMatrix = generate8Dct();
+
+    float** quantizedCoefficients = new float* [size];
+    for (int i = 0; i < size; ++i) {
+        quantizedCoefficients[i] = new float[size];
+        for (int j = 0; j < 256; j++) {
+            quantizedCoefficients[i][j] = 0.0f;
+        }
+    }
+
+    for (int row = 0; row < size; row += 8) {
+        for (int col = 0; col < size; col += 8) {
+            // Extract 8x8 block
+            float** block = new float* [8];
+            for (int i = 0; i < 8; ++i) {
+                block[i] = new float[8];
+                for (int j = 0; j < 8; ++j) {
+                    block[i][j] = image[row + i][col + j];
+                }
+            }
+
+            // Apply DCT
+            float** dctBlock = applyDCT(block, dctMatrix);
+
+            // Quantize
+            float** quantizedBlock = applyQ(dctBlock);
+            for (int i = 0; i < 8; ++i) {
+                for (int j = 0; j < 8; ++j) {
+                    quantizedCoefficients[row + i][col + j] = quantizedBlock[i][j];
+                }
+            }
+        }
+    }
+
+    return quantizedCoefficients;
+}
+
+float** decode(float** quantizedImage, int size) {
+    float** dctMatrix = generate8Dct();
+    float** idctMatrix = transpose(dctMatrix, 8, 8);
+    float** restoredImage = new float* [size];
+    for (int i = 0; i < size; ++i) {
+        restoredImage[i] = new float[size];
+        for (int j = 0; j < 256; j++) {
+            restoredImage[i][j] = 0.0f;
+        }
+    }
+    for (int row = 0; row < size; row += 8) {
+        for (int col = 0; col < size; col += 8) {
+            // Extract 8x8 block
+            float** block = new float* [8];
+            for (int i = 0; i < 8; ++i) {
+                block[i] = new float[8];
+                for (int j = 0; j < 8; ++j) {
+                    block[i][j] = quantizedImage[row + i][col + j];
+                }
+            }
+
+
+            // Inverse quantize
+            float** iqBlock = applyIQ(block);
+
+            // Apply IDCT
+            float** restoredBlock = applyIDCT(iqBlock, idctMatrix, dctMatrix);
+
+            // Save results back to the image matrices
+            for (int i = 0; i < 8; ++i) {
+                for (int j = 0; j < 8; ++j) {
+                    restoredImage[row + i][col + j] = restoredBlock[i][j];
+                }
+            }
+
+            // Clean up block memory
+            for (int i = 0; i < 8; ++i) {
+                delete[] block[i];
+                delete[] iqBlock[i];
+                delete[] restoredBlock[i];
+            }
+            delete[] block;
+            delete[] iqBlock;
+            delete[] restoredBlock;
+        }
+    }
+    return restoredImage;
+}
+
+// Session 05 Part 12
+
+
 int main() {
     // create a two-dimensional array of 320x256 pixels
     float (*image2D)[256] = create_image(320);
@@ -466,7 +696,7 @@ int main() {
 
     // Store the cosine pattern to a RAW file
     const char* cosineFilename = "cosine_pattern.raw";
-    store(cosineFilename, cosinePattern);
+    store(cosineFilename, cosinePattern, 256, 256);
 
     // Load the parrot image
     const char* parrotFilename = "parrot_256x256.raw";
@@ -487,7 +717,7 @@ int main() {
 
     // Store the modified image to a RAW file
     const char* modifiedFilename = "modified_parrot.raw";
-    store(modifiedFilename, modifiedImage);
+    store(modifiedFilename, modifiedImage, 256, 256);
 
 
     // SESSION 2 PART 1
@@ -514,12 +744,12 @@ int main() {
         // Generate uniform noise
     float** uniformNoise = generateUniformNoise(-0.5f, 0.5f);
     const char* uniformFilename = "uniform_noise.raw";
-    store(uniformFilename, uniformNoise);
+    store(uniformFilename, uniformNoise, 256, 256);
 
     // Generate Gaussian noise
     float** gaussianNoise = generateGaussianNoise(0.0f, 0.1443f); // Variance equivalent to uniform noise
     const char* gaussianFilename = "gaussian_noise.raw";
-    store(gaussianFilename, gaussianNoise);
+    store(gaussianFilename, gaussianNoise, 256, 256);
 
 
     // Calculate mean and variance for uniform noise
@@ -535,7 +765,7 @@ int main() {
     // Session 3
     float** matrixImage = createDctMatrix();
     const char* matrixfilename = "matrixfilename.raw";
-    store(matrixfilename, matrixImage);
+    store(matrixfilename, matrixImage, 256, 256);
 
     //print2DArray(matrixImage, WIDTH, HEIGHT);
     cout << "#####" << endl;
@@ -544,7 +774,7 @@ int main() {
 
     float ** transposed_matrix_image = transpose(matrixImage, 256, 256);
     float** multiplied_matrix = multiplyMatrices(matrixImage,256,256, transposed_matrix_image, 256, 256);
-    store("multiplied_matrix_new.raw", multiplied_matrix);
+    store("multiplied_matrix_new.raw", multiplied_matrix, 256, 256);
 
     // session 3 part 8
 
@@ -615,10 +845,29 @@ int main() {
     // SESSION 4
     // PART 09
     float** transformedImage = transform2D(parrotImage, matrixImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_dct_transformed_image.raw", transformedImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_dct_transformed_image.raw", transformedImage, 256, 256);
     float** restoredImage = restoreTransform2d(transformedImage, transposed_matrix_image, matrixImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_transformed_image.raw", restoredImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_transformed_image.raw", restoredImage, 256, 256);
 
+
+    // Part 10
+    float* rows[8];
+    for (int i = 0; i < 8; ++i) {
+        rows[i] = QTable[i];
+    };
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_Q_table.raw", rows, 8, 8);
+
+    //float** dct = generate8Dct();
+    //float** idct = transpose(dct, 8, 8);
+    approximate(parrotImage, 256);
+
+
+
+    // Session 04 Part 11
+    float** encodedImage = encode(parrotImage, 256);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part11_encodedImage.raw", encodedImage, 256, 256);
+    float** decodedImage = decode(encodedImage, 256);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part11_decodedImage.raw", decodedImage, 256, 256);
 
     // Clean up dynamically allocated memory
     for (int i = 0; i < HEIGHT; ++i) {
