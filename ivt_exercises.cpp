@@ -10,6 +10,9 @@
 using std::cout;
 using std::endl;
 
+std::random_device rd;
+std::mt19937 gen(rd());
+
 
 const int ZIGZAG_ORDER[64][2] = {
     {0, 0}, {0, 1}, {1, 0}, {2, 0}, {1, 1}, {0, 2}, {0, 3}, {1, 2},
@@ -176,8 +179,6 @@ float** generateUniformNoise(float minVal, float maxVal) {
         image[i] = new float[WIDTH];
     }
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dist(minVal, maxVal);
 
     for (int y = 0; y < HEIGHT; ++y) {
@@ -234,6 +235,58 @@ std::pair<float, float> calculateMeanAndVariance(float** image) {
 
     return std::make_pair(mean, variance);
 }
+
+float** getImageWithAddedNoise(float** image, float MSE) {
+    float** noise = new float* [256];
+    for (int i = 0; i < 256; ++i) {
+        noise[i] = new float[256];
+    }
+
+    float** newImage = new float* [256];
+    for (int i = 0; i < 256; ++i) {
+        newImage[i] = new float[256];
+    }
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::normal_distribution<float> dist(0.0f, std::sqrt(MSE));
+    cout << "hmm";
+    cout << image[4][4];
+    cout << "ok";
+    for (int x = 0; x < 256; ++x) {
+        for (int y = 0; y < 256; ++y) {
+            noise[x][y] = dist(gen);
+            //cout << noise[x][y] << " ";
+        }
+        //cout << endl;
+    }
+    for (int x = 0; x < 256; ++x) {
+        for (int y = 0; x < 256; ++y) {
+            newImage[x][y] =0.0f;
+            newImage[x][y] = image[x][y] + noise[x][y];
+            //cout << newImage[x][y] << " ";
+        }
+        cout << "ok we are here: " << x << endl;
+
+    }
+    cout << "we are out!";
+    //cout << noise[0][5];
+
+
+    //for (int x = 0; x < 256; ++x) {
+    //    for (int y = 0; y < 256; ++y) {
+    //        //cout << noise[x][y] ;
+    //        //cout << x << " " << y << endl;
+    //        newImage[x][y] = 0.0f;
+    //        //cout << newImage[x][y];
+    //    }
+    //}
+    cout << "BRO" << endl;
+    return noise;
+
+
+}
+
 
 
 // Session 3 part 1
@@ -825,9 +878,6 @@ void encodeRLE(float** quantizedImage, const std::string& filename) {
 
             // Write RLE AC coefficients to the file
             writeRLEToFile(rleAC, outFile);
-
-            // Mark end of block
-            //outFile << "EOB\n";
         }
     }
 
@@ -876,6 +926,11 @@ int main() {
 
     // SESSION 1 PART 2
 
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 01 PART 02 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
+
     // Generate the cosine pattern
     float** cosinePattern = generateCosinePattern();
 
@@ -897,6 +952,11 @@ int main() {
 
     // SESSION 1 PART 3
 
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 01 PART 03 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
+
     // Multiply the parrot image with the cosine pattern
     float** modifiedImage = multiplyImages(parrotImage, cosinePattern);
 
@@ -905,7 +965,12 @@ int main() {
     store(modifiedFilename, modifiedImage, 256, 256);
 
 
-    // SESSION 2 PART 1
+    // SESSION 2 PART 4
+
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 02 PART 04 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
 
     float** original_image = load("parrot_256x256.raw");
     float** blurred_image = load("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part01_blurred.raw");
@@ -925,14 +990,18 @@ int main() {
     std::cout << "psnr sharpened: " << psnr_sharpened << std::endl;
     std::cout << "psnr normal: " << psnr_normal << std::endl;
 
-    // SESSION 2 PART 2
+    // SESSION 2 PART 5
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 02 PART 02 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
         // Generate uniform noise
     float** uniformNoise = generateUniformNoise(-0.5f, 0.5f);
     const char* uniformFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part02_uniform_noise.raw";
     store(uniformFilename, uniformNoise, 256, 256);
 
     // Generate Gaussian noise
-    float** gaussianNoise = generateGaussianNoise(0.0f, 0.1443f); // Variance equivalent to uniform noise
+    float** gaussianNoise = generateGaussianNoise(0.0f, 0.083f); // Variance equivalent to uniform noise
     const char* gaussianFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part02_gaussian_noise.raw";
     store(gaussianFilename, gaussianNoise, 256, 256);
 
@@ -945,9 +1014,22 @@ int main() {
     std::pair<float, float> gaussianStats = calculateMeanAndVariance(gaussianNoise);
     std::cout << "Gaussian Noise - Mean: " << gaussianStats.first << ", Variance: " << gaussianStats.second << std::endl;
 
+    // Session 02 Part 06
+    //cout << "##################################################################" << endl;
+    //cout << "####################### SESSION 02 PART 06 #######################" << endl;
+    //cout << "##################################################################\n" << endl;
+
+    //float** imageWithAddedNoise = getImageWithAddedNoise(original_image, 77);
+    //store("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part06_added_noise_image.raw", imageWithAddedNoise, 256, 256);
+
 
 
     // Session 3 Part 07
+    
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 03 PART 07 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
     float** matrixImage = createDctMatrix();
     const char* matrixfilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part07_DCT_Matrix_256.raw";
     store(matrixfilename, matrixImage, 256, 256);
@@ -962,39 +1044,41 @@ int main() {
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part07_Multiplied_inverse_original.raw", multiplied_matrix, 256, 256);
 
     // session 3 part 8
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 03 PART 08 #######################" << endl;
+    cout << "##################################################################\n" << endl;
 
-    cout << "SESSION 03 PART 08" << endl;
 
 
     // for the parrot image signal
     // we are going to be using threshold values 10, 50, and 100 for the row extracted from the parrot image
-    //float* imageRow = extractRow(original_image, 10, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
-    //float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
-    //float* restoredImageRow = restoreRow(transformedImageRow, transposed_matrix_image, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
+    float* imageRow = extractRow(original_image, 10, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
+    float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
+    float* restoredImageRow = restoreRow(transformedImageRow, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
     
     //Threshold 10
-    //float* thresholdedtransformedImageRow01 = thresholdCoefficients(transformedImageRow,256, 10);
-    //float* restoredThresholdedImageRow01 = restoreRow(thresholdedtransformedImageRow01, transposed_matrix_image, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredThresholdedImageRow01, 256);
-    //float psnrVal01 = psnrRow(imageRow, restoredThresholdedImageRow01, 256, 255);
-    //std::cout << "PSNR for thresholded signal with threshold val of 10 is: " << psnrVal01 << std::endl;
+    float* thresholdedtransformedImageRow01 = thresholdCoefficients(transformedImageRow,256, 10);
+    float* restoredThresholdedImageRow01 = restoreRow(thresholdedtransformedImageRow01, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredThresholdedImageRow01, 256);
+    float psnrVal01 = psnrRow(imageRow, restoredThresholdedImageRow01, 256, 255);
+    std::cout << "PSNR for thresholded signal with threshold val of 10 is: " << psnrVal01 << std::endl;
     
     // Threshold 50
-    //float* thresholdedtransformedImageRow02 = thresholdCoefficients(transformedImageRow, 256, 50);
-    //float* restoredThresholdedImageRow02 = restoreRow(thresholdedtransformedImageRow02, transposed_matrix_image, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredThresholdedImageRow02, 256);
-    //float psnrVal02 = psnrRow(imageRow, restoredThresholdedImageRow02, 256, 255);
-    //std::cout << "PSNR for thresholded signal with threshold val of 50 is: " << psnrVal02 << std::endl;
+    float* thresholdedtransformedImageRow02 = thresholdCoefficients(transformedImageRow, 256, 50);
+    float* restoredThresholdedImageRow02 = restoreRow(thresholdedtransformedImageRow02, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredThresholdedImageRow02, 256);
+    float psnrVal02 = psnrRow(imageRow, restoredThresholdedImageRow02, 256, 255);
+    std::cout << "PSNR for thresholded signal with threshold val of 50 is: " << psnrVal02 << std::endl;
     
     // Threshold 100
-    //float* thresholdedtransformedImageRow03 = thresholdCoefficients(transformedImageRow, 256, 100);
-    //float* restoredThresholdedImageRow03 = restoreRow(thresholdedtransformedImageRow03, transposed_matrix_image, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredThresholdedImageRow03, 256);
-    //float psnrVal03 = psnrRow(imageRow, restoredThresholdedImageRow03, 256, 255);
-    //std::cout << "PSNR for thresholded signal with threshold val of 100 is: " << psnrVal03 << std::endl;
+    float* thresholdedtransformedImageRow03 = thresholdCoefficients(transformedImageRow, 256, 100);
+    float* restoredThresholdedImageRow03 = restoreRow(thresholdedtransformedImageRow03, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredThresholdedImageRow03, 256);
+    float psnrVal03 = psnrRow(imageRow, restoredThresholdedImageRow03, 256, 255);
+    std::cout << "PSNR for thresholded signal with threshold val of 100 is: " << psnrVal03 << std::endl;
 
 
 
@@ -1071,6 +1155,12 @@ int main() {
 
     // SESSION 4
     // PART 09
+
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 04 PART 09 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
+
     float** transformedImage = transform2D(parrotImage, matrixImage);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_dct_transformed_image.raw", transformedImage, 256, 256);
     float** restoredImage = restoreTransform2d(transformedImage, transposed_matrix_image, matrixImage);
@@ -1078,6 +1168,12 @@ int main() {
 
 
     // Part 10
+    
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 04 PART 10 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
+    
     float* rows[8];
     for (int i = 0; i < 8; ++i) {
         rows[i] = QTable[i];
@@ -1091,6 +1187,12 @@ int main() {
 
 
     // Session 04 Part 11
+
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 04 PART 11 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
+
     float** encodedImage = encode(parrotImage, 256);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part11_encodedImage.raw", encodedImage, 256, 256);
     float** decodedImage = decode(encodedImage, 256);
@@ -1098,6 +1200,12 @@ int main() {
 
 
     // Session 05 Part 12
+
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 05 PART 12 #######################" << endl;
+    cout << "##################################################################\n" << endl;
+
+
     float** downsizedImage = getDC(encodedImage);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_dcImage.raw", downsizedImage, 32, 32);
     deltaEncodeDC(downsizedImage, 32, "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt");
@@ -1105,6 +1213,10 @@ int main() {
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_restored_image_final.raw", imageFromDelta, 32, 32);
 
 
+    // Session 05 Part 13
+    cout << "##################################################################" << endl;
+    cout << "####################### SESSION 05 PART 13 #######################" << endl;
+    cout << "##################################################################\n" << endl;
     encodeRLE(encodedImage, "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_Extract_AC_RLE.txt");
 
 
