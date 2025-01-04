@@ -880,7 +880,7 @@ int main() {
     float** cosinePattern = generateCosinePattern();
 
     // Store the cosine pattern to a RAW file
-    const char* cosineFilename = "cosine_pattern.raw";
+    const char* cosineFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session01_Part02_cosine_pattern.raw";
     store(cosineFilename, cosinePattern, 256, 256);
 
     // Load the parrot image
@@ -901,15 +901,15 @@ int main() {
     float** modifiedImage = multiplyImages(parrotImage, cosinePattern);
 
     // Store the modified image to a RAW file
-    const char* modifiedFilename = "modified_parrot.raw";
+    const char* modifiedFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session01_Part03_Parrot_Cosine_multiplied.raw";
     store(modifiedFilename, modifiedImage, 256, 256);
 
 
     // SESSION 2 PART 1
 
     float** original_image = load("parrot_256x256.raw");
-    float** blurred_image = load("blurred.raw");
-    float** sharpened_image = load("sharpened_from_adding.raw");
+    float** blurred_image = load("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part01_blurred.raw");
+    float** sharpened_image = load("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part01_sharpened_from_adding.raw");
 
     float mse_sharpened = mse(original_image, sharpened_image);
     float mse_blurred = mse(original_image, blurred_image);
@@ -928,12 +928,12 @@ int main() {
     // SESSION 2 PART 2
         // Generate uniform noise
     float** uniformNoise = generateUniformNoise(-0.5f, 0.5f);
-    const char* uniformFilename = "uniform_noise.raw";
+    const char* uniformFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part02_uniform_noise.raw";
     store(uniformFilename, uniformNoise, 256, 256);
 
     // Generate Gaussian noise
     float** gaussianNoise = generateGaussianNoise(0.0f, 0.1443f); // Variance equivalent to uniform noise
-    const char* gaussianFilename = "gaussian_noise.raw";
+    const char* gaussianFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part02_gaussian_noise.raw";
     store(gaussianFilename, gaussianNoise, 256, 256);
 
 
