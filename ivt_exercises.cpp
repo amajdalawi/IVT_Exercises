@@ -947,9 +947,9 @@ int main() {
 
 
 
-    // Session 3
+    // Session 3 Part 07
     float** matrixImage = createDctMatrix();
-    const char* matrixfilename = "matrixfilename.raw";
+    const char* matrixfilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part07_DCT_Matrix_256.raw";
     store(matrixfilename, matrixImage, 256, 256);
 
     //print2DArray(matrixImage, WIDTH, HEIGHT);
@@ -959,7 +959,7 @@ int main() {
 
     float ** transposed_matrix_image = transpose(matrixImage, 256, 256);
     float** multiplied_matrix = multiplyMatrices(matrixImage,256,256, transposed_matrix_image, 256, 256);
-    store("multiplied_matrix_new.raw", multiplied_matrix, 256, 256);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part07_Multiplied_inverse_original.raw", multiplied_matrix, 256, 256);
 
     // session 3 part 8
 
@@ -1032,20 +1032,40 @@ int main() {
     //
 
 
-    // Now for the cosine row pattern, we will threshold it with values of 0.01, 0.5, and 0.8
+    // Now for the cosine row pattern, we will threshold it with values of 0.01, 0.5, and 0.9
     float* cosineRow = extractRow(cosinePattern, 10, 256);
     storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
     float* transformedCosineRow = transformRow(cosineRow, matrixImage, 256);
-    printRow(transformedCosineRow, 256);
-
     storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
-    float* thresholdedtransformedCosineRow = thresholdCoefficients(transformedCosineRow, 256, 0.9);
-    printRow(thresholdedtransformedCosineRow, 256);
-    float* restoredCosineRow = restoreRow(thresholdedtransformedCosineRow, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_cosine_random_row.raw", restoredCosineRow, 256);
-    float psnrVal = psnrRow(cosineRow, restoredCosineRow, 256, 1);
-    std::cout << "PSNR here is: " << psnrVal << std::endl;
+    float* restoredCosineRow = restoreRow(transformedCosineRow, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_restored_dct_cosine_random_row.raw", restoredCosineRow, 256);
+    //printRow(transformedCosineRow, 256);
 
+    // now for the thresholding parts
+    // threshold val = 0.9
+    float* thresholdedtransformedCosineRow01 = thresholdCoefficients(transformedCosineRow, 256, 0.9);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow01, 256);
+    float* restoredThresholdedCosineRow01 = restoreRow(thresholdedtransformedCosineRow01, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_cosine_random_row_01.raw", restoredThresholdedCosineRow01, 256);
+    float psnrValCosine01 = psnrRow(cosineRow, restoredThresholdedCosineRow01, 256, 1);
+    std::cout << "PSNR val of restored thresholded cosine signal (threshold val = 0.9) with original cosine signal here is: " << psnrValCosine01 << std::endl;
+    //printRow(thresholdedtransformedCosineRow01, 256);
+
+    // threshold val = 0.5
+    float* thresholdedtransformedCosineRow02 = thresholdCoefficients(transformedCosineRow, 256, 0.5);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow02, 256);
+    float* restoredThresholdedCosineRow02 = restoreRow(thresholdedtransformedCosineRow02, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_cosine_random_row_02.raw", restoredThresholdedCosineRow02, 256);
+    float psnrValCosine02 = psnrRow(cosineRow, restoredThresholdedCosineRow02, 256, 1);
+    std::cout << "PSNR val of restored thresholded cosine signal (threshold val = 0.5) with original cosine signal here is: " << psnrValCosine02 << std::endl;
+
+    // threshold val = 0.01
+    float* thresholdedtransformedCosineRow03 = thresholdCoefficients(transformedCosineRow, 256, 0.01);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow03, 256);
+    float* restoredThresholdedCosineRow03 = restoreRow(thresholdedtransformedCosineRow03, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_cosine_random_row_03.raw", restoredThresholdedCosineRow03, 256);
+    float psnrValCosine03 = psnrRow(cosineRow, restoredThresholdedCosineRow03, 256, 1);
+    std::cout << "PSNR val of restored thresholded cosine signal (threshold val = 0.01) with original cosine signal here is: " << psnrValCosine03 << std::endl;
 
 
 
