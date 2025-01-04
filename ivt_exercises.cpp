@@ -11,6 +11,19 @@ using std::cout;
 using std::endl;
 
 
+const int ZIGZAG_ORDER[64][2] = {
+    {0, 0}, {0, 1}, {1, 0}, {2, 0}, {1, 1}, {0, 2}, {0, 3}, {1, 2},
+    {2, 1}, {3, 0}, {4, 0}, {3, 1}, {2, 2}, {1, 3}, {0, 4}, {0, 5},
+    {1, 4}, {2, 3}, {3, 2}, {4, 1}, {5, 0}, {6, 0}, {5, 1}, {4, 2},
+    {3, 3}, {2, 4}, {1, 5}, {0, 6}, {0, 7}, {1, 6}, {2, 5}, {3, 4},
+    {4, 3}, {5, 2}, {6, 1}, {7, 0}, {7, 1}, {6, 2}, {5, 3}, {4, 4},
+    {3, 5}, {2, 6}, {1, 7}, {2, 7}, {3, 6}, {4, 5}, {5, 4}, {6, 3},
+    {7, 2}, {7, 3}, {6, 4}, {5, 5}, {4, 6}, {3, 7}, {4, 7}, {5, 6},
+    {6, 5}, {7, 4}, {7, 5}, {6, 6}, {5, 7}, {6, 7}, {7, 6}, {7, 7}
+};
+
+
+
  float QTable[8][8] = {
         {16.0f, 11.0f, 10.0f, 16.0f, 24.0f, 40.0f, 51.0f, 61.0f},
         {12.0f, 12.0f, 14.0f, 19.0f, 26.0f, 58.0f, 60.0f, 55.0f},
@@ -696,6 +709,7 @@ void deltaEncodeDC(float** dcImage, int size, const char* filename) {
 
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
+            cout << dcImage[i][j] << " ";
             float delta = 0.0f;
             if (i == 0 && j == 0) {
                 delta = dcImage[i][j]; // First term
@@ -708,6 +722,7 @@ void deltaEncodeDC(float** dcImage, int size, const char* filename) {
             }
             file << delta << " ";
         }
+        cout << "\n";
         file << "\n";
     }
 
@@ -746,6 +761,100 @@ float** deltaDecodeDC(const char* filename, int size) {
     file.close();
     return dcImage;
 }
+
+// Session 05 part 13
+
+// Function to generate RLE AC coefficients for an 8×8 block
+std::vector<std::pair<int, float>> generateRLEAC(float block[8][8]) {
+    std::vector<std::pair<int, float>> rleAC;
+    int zeroCount = 0;
+
+    // Start from the second element in zigzag order (AC coefficients)
+    for (int i = 1; i < 64; ++i) {
+        int row = ZIGZAG_ORDER[i][0];
+        int col = ZIGZAG_ORDER[i][1];
+        float value = block[row][col];
+
+        if (value == 0.0f) {
+            ++zeroCount;
+        }
+        else {
+            // Push the run-length and the non-zero value to the vector
+            rleAC.emplace_back(zeroCount, value);
+            zeroCount = 0; // Reset zero count
+        }
+    }
+
+    // Add end-of-block marker (0, 0) if there are trailing zeros
+    if (rleAC.empty() || zeroCount > 0) {
+        rleAC.emplace_back(0, 0.0f);
+    }
+
+    return rleAC;
+}
+
+// Function to write RLE AC coefficients to a file
+void writeRLEToFile(const std::vector<std::pair<int, float>>& rleAC, std::ofstream& outFile) {
+    for (const auto& pair : rleAC) {
+        outFile << pair.first << " " << pair.second << " ";
+        //std::cout << pair.first << " " << static_cast<int>(pair.second);
+    }
+    outFile << std::endl;
+}
+
+// Function to encode a DCT-quantized image of size 256×256 into RLE AC coefficients
+void encodeRLE(float** quantizedImage, const std::string& filename) {
+    std::ofstream outFile(filename);
+    if (!outFile) {
+        std::cerr << "Error: Unable to open file for writing: " << filename << std::endl;
+        return;
+    }
+
+    for (int row = 0; row < 256; row += 8) {
+        for (int col = 0; col < 256; col += 8) {
+            // Extract an 8×8 block
+            float block[8][8];
+            for (int i = 0; i < 8; ++i) {
+                for (int j = 0; j < 8; ++j) {
+                    block[i][j] = quantizedImage[row + i][col + j];
+                }
+            }
+
+            // Generate RLE AC coefficients for the block
+            std::vector<std::pair<int, float>> rleAC = generateRLEAC(block);
+
+            // Write RLE AC coefficients to the file
+            writeRLEToFile(rleAC, outFile);
+
+            // Mark end of block
+            //outFile << "EOB\n";
+        }
+    }
+
+    outFile.close();
+    if (outFile) {
+        std::cout << "RLE AC coefficients for the image successfully written to " << filename << std::endl;
+    }
+    else {
+        std::cerr << "Error: Failed to write RLE AC coefficients to file." << std::endl;
+    }
+}
+
+
+namespace Session5 {
+    void encode() {
+
+    }
+
+    
+}
+
+
+
+
+
+
+
 
 
 
@@ -891,29 +1000,51 @@ int main() {
 
 
     // threshold values are going to be : 0.01, 0.5, 1
-    //float* noiseRow = extractRow(uniformNoise, 10, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_uniform_noise_random_row.raw", noiseRow, 256);
-    //float* transformedNoiseRow = transformRow(noiseRow, matrixImage, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_noise_random_row.raw", transformedNoiseRow, 256);
-    //float* thresholdedtransformedNoiseRow = thresholdCoefficients(transformedNoiseRow, 256, 1);
-    //float* restoredNoiseRow = restoreRow(thresholdedtransformedNoiseRow, transposed_matrix_image, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_noise_random_row.raw", restoredNoiseRow, 256);
-    //float psnrVal = psnrRow(noiseRow, restoredNoiseRow, 256, 1);
-    //std::cout << "PSNR here is: " << psnrVal << std::endl;
+    float* noiseRow = extractRow(uniformNoise, 10, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_uniform_noise_random_row.raw", noiseRow, 256);
+    float* transformedNoiseRow = transformRow(noiseRow, matrixImage, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_noise_random_row.raw", transformedNoiseRow, 256);
+    float* restoredNoiseRow = restoreRow(transformedNoiseRow, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_noise_random_row.raw", restoredNoiseRow, 256);
+
+    // threshold val 1
+
+    float* thresholdedtransformedNoiseRow01 = thresholdCoefficients(transformedNoiseRow, 256, 1);
+    float* restoredThresholdedNoiseRow01 = restoreRow(thresholdedtransformedNoiseRow01, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_noise_random_row_01.raw", restoredThresholdedNoiseRow01, 256);
+    float psnrValNoise01 = psnrRow(noiseRow, restoredThresholdedNoiseRow01, 256, 1);
+    std::cout << "PSNR here is for the noise row with thresholded vals of 1 : " << psnrValNoise01 << std::endl;
+
+    // threshold val 0.5
+    float* thresholdedtransformedNoiseRow02 = thresholdCoefficients(transformedNoiseRow, 256, 0.5);
+    float* restoredThresholdedNoiseRow02 = restoreRow(thresholdedtransformedNoiseRow02, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_noise_random_row_02.raw", restoredThresholdedNoiseRow02, 256);
+    float psnrValNoise02 = psnrRow(noiseRow, restoredThresholdedNoiseRow02, 256, 0.5);
+    std::cout << "PSNR here is for the noise row with thresholded vals of 0.5 : " << psnrValNoise02 << std::endl;
+
+    // threshold val 0.01
+    float* thresholdedtransformedNoiseRow03 = thresholdCoefficients(transformedNoiseRow, 256, 0.01);
+    float* restoredThresholdedNoiseRow03 = restoreRow(thresholdedtransformedNoiseRow03, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_noise_random_row_03.raw", restoredThresholdedNoiseRow03, 256);
+    float psnrValNoise03 = psnrRow(noiseRow, restoredThresholdedNoiseRow03, 256, 0.5);
+    std::cout << "PSNR here is for the noise row with thresholded vals of 0.01` : " << psnrValNoise03 << std::endl;
 
     //
-    //float* cosineRow = extractRow(cosinePattern, 10, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
-    //float* transformedCosineRow = transformRow(cosineRow, matrixImage, 256);
-    //printRow(transformedCosineRow, 256);
 
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
-    //float* thresholdedtransformedCosineRow = thresholdCoefficients(transformedCosineRow, 256, 0.9);
-    //printRow(thresholdedtransformedCosineRow, 256);
-    //float* restoredCosineRow = restoreRow(thresholdedtransformedCosineRow, transposed_matrix_image, 256);
-    //storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_cosine_random_row.raw", restoredCosineRow, 256);
-    //float psnrVal = psnrRow(cosineRow, restoredCosineRow, 256, 1);
-    //std::cout << "PSNR here is: " << psnrVal << std::endl;
+
+    // Now for the cosine row pattern, we will threshold it with values of 0.01, 0.5, and 0.8
+    float* cosineRow = extractRow(cosinePattern, 10, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
+    float* transformedCosineRow = transformRow(cosineRow, matrixImage, 256);
+    printRow(transformedCosineRow, 256);
+
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
+    float* thresholdedtransformedCosineRow = thresholdCoefficients(transformedCosineRow, 256, 0.9);
+    printRow(thresholdedtransformedCosineRow, 256);
+    float* restoredCosineRow = restoreRow(thresholdedtransformedCosineRow, transposed_matrix_image, 256);
+    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_cosine_random_row.raw", restoredCosineRow, 256);
+    float psnrVal = psnrRow(cosineRow, restoredCosineRow, 256, 1);
+    std::cout << "PSNR here is: " << psnrVal << std::endl;
 
 
 
@@ -953,6 +1084,8 @@ int main() {
     float** imageFromDelta = deltaDecodeDC("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt", 32);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_restored_image_final.raw", imageFromDelta, 32, 32);
 
+
+    encodeRLE(encodedImage, "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_Extract_AC_RLE.txt");
 
 
 
