@@ -237,52 +237,53 @@ std::pair<float, float> calculateMeanAndVariance(float** image) {
 }
 
 float** getImageWithAddedNoise(float** image, float MSE) {
-    float** noise = new float* [256];
+    cout << "entering function";
+    /*float** noise = new float* [256];
     for (int i = 0; i < 256; ++i) {
         noise[i] = new float[256];
-    }
-
+    }*/
+    float ** noise = generateGaussianNoise(0, std::sqrt(MSE));
     float** newImage = new float* [256];
     for (int i = 0; i < 256; ++i) {
         newImage[i] = new float[256];
     }
 
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::normal_distribution<float> dist(0.0f, std::sqrt(MSE));
-    cout << "hmm";
-    cout << image[4][4];
-    cout << "ok";
-    for (int x = 0; x < 256; ++x) {
-        for (int y = 0; y < 256; ++y) {
-            noise[x][y] = dist(gen);
-            //cout << noise[x][y] << " ";
-        }
-        //cout << endl;
-    }
-    for (int x = 0; x < 256; ++x) {
-        for (int y = 0; x < 256; ++y) {
-            newImage[x][y] =0.0f;
-            newImage[x][y] = image[x][y] + noise[x][y];
-            //cout << newImage[x][y] << " ";
-        }
-        cout << "ok we are here: " << x << endl;
+    //std::random_device rd;
+    //std::mt19937 gen(rd());
+    //std::normal_distribution<float> dist(0.0f, std::sqrt(MSE));
+    //cout << "hmm";
+    ////cout << image[4][4];
+    //cout << "ok";
+    //for (int x = 0; x < 256; ++x) {
+    //    for (int y = 0; y < 256; ++y) {
+    //        noise[x][y] = dist(gen);
+    //        //cout << noise[x][y] << " ";
+    //    }
+    //    //cout << endl;
+    //}
+    //for (int x = 0; x < 256; ++x) {
+    //    for (int y = 0; x < 256; ++y) {
+    //        newImage[x][y] =0.0f;
+    //        newImage[x][y] = image[x][y] + noise[x][y];
+    //        //cout << newImage[x][y] << " ";
+    //    }
+    //    cout << "ok we are here: " << x << endl;
 
-    }
+    //}
     cout << "we are out!";
     //cout << noise[0][5];
 
 
-    //for (int x = 0; x < 256; ++x) {
-    //    for (int y = 0; y < 256; ++y) {
-    //        //cout << noise[x][y] ;
-    //        //cout << x << " " << y << endl;
-    //        newImage[x][y] = 0.0f;
-    //        //cout << newImage[x][y];
-    //    }
-    //}
+    for (int x = 0; x < 256; ++x) {
+        for (int y = 0; y < 256; ++y) {
+            //cout << noise[x][y] ;
+            //cout << x << " " << y << endl;
+            newImage[x][y] = noise[x][y] + image[x][y];
+            //cout << newImage[x][y];
+        }
+    }
     cout << "BRO" << endl;
-    return noise;
+    return newImage;
 
 
 }
@@ -1019,8 +1020,8 @@ int main() {
     //cout << "####################### SESSION 02 PART 06 #######################" << endl;
     //cout << "##################################################################\n" << endl;
 
-    //float** imageWithAddedNoise = getImageWithAddedNoise(original_image, 77);
-    //store("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part06_added_noise_image.raw", imageWithAddedNoise, 256, 256);
+    float** imageWithAddedNoise = getImageWithAddedNoise(original_image, 77);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part06_added_noise_image.raw", imageWithAddedNoise, 256, 256);
 
 
 
