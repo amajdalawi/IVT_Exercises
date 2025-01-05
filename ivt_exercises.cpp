@@ -507,10 +507,10 @@ float** restoreTransform2d(float** coefficients, float** idctMatrix, float** dct
     return secondStep;
 }
 
-float* threshold2D(float** dctCoefficients, int size, float threshold) {
-    float** thresholdedCoefficients = new float*[size];
+float** threshold2D(float** dctCoefficients, int size, float threshold) {
+    float** thresholdedCoefficients = new float* [HEIGHT];
     for (int i = 0; i < size; i++) {
-        float* thresholdedCoefficients[i] = new float[size];
+         thresholdedCoefficients[i] = new float[HEIGHT];
     }
     int count = 0;
     for (int i = 0; i < size; ++i) {
@@ -930,13 +930,105 @@ void encodeRLE(float** quantizedImage, const std::string& filename) {
     }
 }
 
+float** decodeRLEandDC(const char* dcFileName, const char* acFileName) {
+    //float** image = new float* [HEIGHT];
+    //for (int i = 0; i < HEIGHT; i++) {
+    //    image[i] = new float[HEIGHT];
+    //}
 
-namespace Session5 {
-    void encode() {
+    //// get the 32 by 32 dc coefficients
+    //float** DC = deltaDecodeDC(dcFileName);
 
+    //for (int row = 0; row < HEIGHT; row += 8) {
+    //    for (int col = 0; col < HEIGHT; col += 8) {
+    //        float** block = new float* [8];
+    //        for (int i = 0; i < 8; i++) {
+    //            block[i] = new float[8];
+    //        }
+
+    //        for (int i = 0; i < 8; i++) {
+    //            for (int j = 0; j < 8; j++) {
+    //                block[i][j] = 
+    //            }
+    //        }
+
+    //    }
+    //}
+
+    // Step 1: Decode the Delta-encoded DC file
+    float** dcImage = deltaDecodeDC(dcFileName, 32);
+    if (!dcImage) {
+        std::cerr << "Error: Unable to decode DC coefficients." << std::endl;
+        return nullptr;
     }
 
-    
+    // Step 2: Prepare the 256x256 image for reconstruction
+    float** image = new float* [256];
+    for (int i = 0; i < 256; ++i) {
+        image[i] = new float[256];
+    }
+
+    // Step 3: Open and read the RLE AC file
+    std::ifstream acFile(acFileName);
+    if (!acFile) {
+        std::cerr << "Error: Unable to open RLE AC file." << std::endl;
+        for (int i = 0; i < 256; ++i) delete[] image[i];
+        delete[] image;
+        return nullptr;
+    }
+
+    // Step 4: Decode each block
+    for (int row = 0; row < 256; row += 8) {
+        for (int col = 0; col < 256; col += 8) {
+            // Initialize an 8x8 block with zeros
+            float block[8][8] = { 0 };
+
+            // Set the DC coefficient
+            block[0][0] = dcImage[row / 8][col / 8];
+
+            // Decode RLE AC coefficients
+            int zigzagIndex = 1;
+            while (zigzagIndex < 64) {
+                int runLength;
+                float value;
+                acFile >> runLength >> value;
+
+                if (runLength == 0 && value == 0) {
+                    // End of Block (EOB)
+                    break;
+                }
+
+                // Skip the run-length of zeros
+                zigzagIndex += runLength;
+
+                if (zigzagIndex >= 64) break;
+
+                // Map the value to the appropriate zigzag position
+                int r = ZIGZAG_ORDER[zigzagIndex][0];
+                int c = ZIGZAG_ORDER[zigzagIndex][1];
+                block[r][c] = value;
+
+                ++zigzagIndex;
+            }
+
+            // Place the 8x8 block into the final image
+            for (int i = 0; i < 8; ++i) {
+                for (int j = 0; j < 8; ++j) {
+                    image[row + i][col + j] = block[i][j];
+                }
+            }
+        }
+    }
+
+    acFile.close();
+
+    // Return the reconstructed image
+    return image;
+
+
+
+
+
 }
 
 
@@ -946,7 +1038,11 @@ namespace Session5 {
 
 
 
-
+// ########################
+// ########################
+// BEGINNING OF MAIN
+// ########################
+// ########################
 
 int main() {
     // create a two-dimensional array of 320x256 pixels
@@ -1213,15 +1309,15 @@ int main() {
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_01_image.raw", thresholdedDCT01, 256, 256);
     float** restoredThresholded01 = restoreTransform2d(thresholdedDCT01, transposed_matrix_image, matrixImage);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_01_image.raw", restoredThresholded01, 256, 256);
-    float psnrThresold01 = psnr(parrotImage, restoredThresholded01);
-    cout << "The value of psnr after thresholding vals below 10 is: " << psnrThreshold01 << endl;
+    float psnrThresold01 = psnr(parrotImage, restoredThresholded01,255);
+    cout << "The value of psnr after thresholding vals below 10 is: " << psnrThresold01 << endl;
 
     //  we try to threshold values below 50
     float** thresholdedDCT02 = threshold2D(transformedImage, 256, 50);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_02_image.raw", thresholdedDCT02, 256, 256);
     float** restoredThresholded02 = restoreTransform2d(thresholdedDCT02, transposed_matrix_image, matrixImage);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_02_image.raw", restoredThresholded02, 256, 256);
-    float psnrThresold02 = psnr(parrotImage, restoredThresholded02);
+    float psnrThresold02 = psnr(parrotImage, restoredThresholded02,255);
     cout << "The value of psnr after thresholding vals below 50 is: " << psnrThresold02 << endl;
 
     // then we try to threshold values below 100
@@ -1229,7 +1325,7 @@ int main() {
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_03_image.raw", thresholdedDCT03, 256, 256);
     float** restoredThresholded03 = restoreTransform2d(thresholdedDCT03, transposed_matrix_image, matrixImage);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_03_image.raw", restoredThresholded03, 256, 256);
-    float psnrThresold03 = psnr(parrotImage, restoredThresholded03);
+    float psnrThresold03 = psnr(parrotImage, restoredThresholded03,255);
     cout << "The value of psnr after thresholding vals below 100 is: " << psnrThresold03 << endl;
 
 
@@ -1287,8 +1383,13 @@ int main() {
     cout << "##################################################################\n" << endl;
     encodeRLE(encodedImage, "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_Extract_AC_RLE.txt");
 
-
-
+    // final
+    float** dctImageFinal = decodeRLEandDC("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt", "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_Extract_AC_RLE.txt");
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_final_dct_quantized_image.raw", dctImageFinal, 256, 256);
+    //now to get the restored image
+    float** restoredImageFinal = decode(dctImageFinal, 256);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_final_restored_image.raw", restoredImageFinal, 256, 256);
+    
     // Clean up dynamically allocated memory
     for (int i = 0; i < HEIGHT; ++i) {
         delete[] cosinePattern[i];
