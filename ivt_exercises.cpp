@@ -507,6 +507,45 @@ float** restoreTransform2d(float** coefficients, float** idctMatrix, float** dct
     return secondStep;
 }
 
+float* threshold2D(float** dctCoefficients, int size, float threshold) {
+    float** thresholdedCoefficients = new float*[size];
+    for (int i = 0; i < size; i++) {
+        float* thresholdedCoefficients[i] = new float[size];
+    }
+    int count = 0;
+    for (int i = 0; i < size; ++i) {
+        for (int j = 0; j < size; j++) {
+            if (std::abs(dctCoefficients[i][j]) < threshold) {
+                thresholdedCoefficients[i][j] = 0.0f;
+                count++;
+            }
+            else {
+                thresholdedCoefficients[i][j] = dctCoefficients[i][j];
+            }
+        }
+        
+        
+    }
+    std::cout << " The number  thresholded values for this signal is: " << count << std::endl;
+    return thresholdedCoefficients;
+}
+
+//float psnrMatrix(float* originalRow, float* restoredRow, int length, float maxValue) {
+//    float mse = 0.0f;
+//    for (int i = 0; i < length; ++i) {
+//        float diff = originalRow[i] - restoredRow[i];
+//        mse += diff * diff;
+//    }
+//    mse /= length;
+//
+//    if (mse == 0) {
+//        return INFINITY; // No error implies infinite PSNR
+//    }
+//
+//    float maxPixelValue = maxValue; // Assuming normalized pixel values in [0, 1]
+//    float psnr = 10.0f * log10((maxPixelValue * maxPixelValue) / mse);
+//    return psnr;
+//}
 
 
 
@@ -993,7 +1032,7 @@ int main() {
 
     // SESSION 2 PART 5
     cout << "##################################################################" << endl;
-    cout << "####################### SESSION 02 PART 02 #######################" << endl;
+    cout << "####################### SESSION 02 PART 05 #######################" << endl;
     cout << "##################################################################\n" << endl;
 
         // Generate uniform noise
@@ -1030,6 +1069,7 @@ int main() {
     cout << "##################################################################" << endl;
     cout << "####################### SESSION 03 PART 07 #######################" << endl;
     cout << "##################################################################\n" << endl;
+
 
     float** matrixImage = createDctMatrix();
     const char* matrixfilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part07_DCT_Matrix_256.raw";
@@ -1166,6 +1206,33 @@ int main() {
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_dct_transformed_image.raw", transformedImage, 256, 256);
     float** restoredImage = restoreTransform2d(transformedImage, transposed_matrix_image, matrixImage);
     store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_transformed_image.raw", restoredImage, 256, 256);
+
+    // now we threshold some values
+    // first we try to threshold values below 10
+    float** thresholdedDCT01 = threshold2D(transformedImage, 256, 10);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_01_image.raw", thresholdedDCT01, 256, 256);
+    float** restoredThresholded01 = restoreTransform2d(thresholdedDCT01, transposed_matrix_image, matrixImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_01_image.raw", restoredThresholded01, 256, 256);
+    float psnrThresold01 = psnr(parrotImage, restoredThresholded01);
+    cout << "The value of psnr after thresholding vals below 10 is: " << psnrThreshold01 << endl;
+
+    //  we try to threshold values below 50
+    float** thresholdedDCT02 = threshold2D(transformedImage, 256, 50);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_02_image.raw", thresholdedDCT02, 256, 256);
+    float** restoredThresholded02 = restoreTransform2d(thresholdedDCT02, transposed_matrix_image, matrixImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_02_image.raw", restoredThresholded02, 256, 256);
+    float psnrThresold02 = psnr(parrotImage, restoredThresholded02);
+    cout << "The value of psnr after thresholding vals below 50 is: " << psnrThresold02 << endl;
+
+    // then we try to threshold values below 100
+    float** thresholdedDCT03 = threshold2D(transformedImage, 256, 100);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_03_image.raw", thresholdedDCT03, 256, 256);
+    float** restoredThresholded03 = restoreTransform2d(thresholdedDCT03, transposed_matrix_image, matrixImage);
+    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_03_image.raw", restoredThresholded03, 256, 256);
+    float psnrThresold03 = psnr(parrotImage, restoredThresholded03);
+    cout << "The value of psnr after thresholding vals below 100 is: " << psnrThresold03 << endl;
+
+
 
 
     // Part 10
