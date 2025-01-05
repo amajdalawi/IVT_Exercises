@@ -142,9 +142,9 @@ float** multiplyImages(float** image1, float** image2) {
         result[i] = new float[WIDTH];
     }
 
-    for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
-            result[y][x] = image1[y][x] * image2[y][x];
+    for (int x = 0; x < HEIGHT; ++x) {
+        for (int y = 0; y < WIDTH; ++y) {
+            result[x][y] = image1[x][y] * image2[x][y];
         }
     }
 
@@ -154,8 +154,8 @@ float** multiplyImages(float** image1, float** image2) {
 // Function to compute the Mean Squared Error (MSE) between two images
 float mse(float** image1, float** image2) {
     float mse = 0.0f;
-    for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
+    for (int x = 0; x < HEIGHT; ++x) {
+        for (int y = 0; y < WIDTH; ++y) {
             float diff = image1[y][x] - image2[y][x];
             mse += diff * diff;
         }
@@ -181,9 +181,9 @@ float** generateUniformNoise(float minVal, float maxVal) {
 
     std::uniform_real_distribution<float> dist(minVal, maxVal);
 
-    for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
-            image[y][x] = dist(gen);
+    for (int x = 0; x < HEIGHT; ++x) {
+        for (int y = 0; y < WIDTH; ++y) {
+            image[x][y] = dist(gen);
         }
     }
 
@@ -217,17 +217,17 @@ std::pair<float, float> calculateMeanAndVariance(float** image) {
     int totalPixels = WIDTH * HEIGHT;
 
     // Calculate mean
-    for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
-            mean += image[y][x];
+    for (int x = 0; x < HEIGHT; ++x) {
+        for (int y = 0; y < WIDTH; ++y) {
+            mean += image[x][y];
         }
     }
     mean /= totalPixels;
 
     // Calculate variance
-    for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
-            float diff = image[y][x] - mean;
+    for (int x = 0; x< HEIGHT; ++x) {
+        for (int y = 0; y < WIDTH; ++y) {
+            float diff = image[x][y] - mean;
             variance += diff * diff;
         }
     }
@@ -683,10 +683,10 @@ void approximate(float** image, int size) {
     }
 
     // Save intermediate results
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_coefficnet_image.raw", dctCoefficients, size, size);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_Quantized_image.raw", quantizedCoefficients, size, size);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_restoredImage.raw", restoredImage, size, size);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_IQ_image.raw", reverseQuantized, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part10_coefficnet_image.raw", dctCoefficients, size, size);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part10_Quantized_image.raw", quantizedCoefficients, size, size);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part10_restoredImage.raw", restoredImage, size, size);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part10_IQ_image.raw", reverseQuantized, 256, 256);
 }
 
 float** encode(float** image, int size) {
@@ -850,7 +850,6 @@ float** deltaDecodeDC(const char* filename, int size) {
             }
         }
     }
-
     file.close();
     return dcImage;
 }
@@ -862,7 +861,7 @@ std::vector<std::pair<int, float>> generateRLEAC(float block[8][8]) {
     std::vector<std::pair<int, float>> rleAC;
     int zeroCount = 0;
 
-    // Start from the second element in zigzag order (AC coefficients)
+    // Start from the second element in zigzag order for ac coeffs.
     for (int i = 1; i < 64; ++i) {
         int row = ZIGZAG_ORDER[i][0];
         int col = ZIGZAG_ORDER[i][1];
@@ -915,12 +914,10 @@ void encodeRLE(float** quantizedImage, const std::string& filename) {
 
             // Generate RLE AC coefficients for the block
             std::vector<std::pair<int, float>> rleAC = generateRLEAC(block);
-
             // Write RLE AC coefficients to the file
             writeRLEToFile(rleAC, outFile);
         }
     }
-
     outFile.close();
     if (outFile) {
         std::cout << "RLE AC coefficients for the image successfully written to " << filename << std::endl;
@@ -931,56 +928,23 @@ void encodeRLE(float** quantizedImage, const std::string& filename) {
 }
 
 float** decodeRLEandDC(const char* dcFileName, const char* acFileName) {
-    //float** image = new float* [HEIGHT];
-    //for (int i = 0; i < HEIGHT; i++) {
-    //    image[i] = new float[HEIGHT];
-    //}
 
-    //// get the 32 by 32 dc coefficients
-    //float** DC = deltaDecodeDC(dcFileName);
-
-    //for (int row = 0; row < HEIGHT; row += 8) {
-    //    for (int col = 0; col < HEIGHT; col += 8) {
-    //        float** block = new float* [8];
-    //        for (int i = 0; i < 8; i++) {
-    //            block[i] = new float[8];
-    //        }
-
-    //        for (int i = 0; i < 8; i++) {
-    //            for (int j = 0; j < 8; j++) {
-    //                block[i][j] = 
-    //            }
-    //        }
-
-    //    }
-    //}
-
-    // Step 1: Decode the Delta-encoded DC file
+    // Decode the delta-encoded dc file
     float** dcImage = deltaDecodeDC(dcFileName, 32);
-    if (!dcImage) {
-        std::cerr << "Error: Unable to decode DC coefficients." << std::endl;
-        return nullptr;
-    }
 
-    // Step 2: Prepare the 256x256 image for reconstruction
+    //  Prepare the 256x256 image for reconstruction
     float** image = new float* [256];
     for (int i = 0; i < 256; ++i) {
         image[i] = new float[256];
     }
 
-    // Step 3: Open and read the RLE AC file
+    // Open and read the RLE AC file
     std::ifstream acFile(acFileName);
-    if (!acFile) {
-        std::cerr << "Error: Unable to open RLE AC file." << std::endl;
-        for (int i = 0; i < 256; ++i) delete[] image[i];
-        delete[] image;
-        return nullptr;
-    }
 
-    // Step 4: Decode each block
+    // Decode each block
     for (int row = 0; row < 256; row += 8) {
         for (int col = 0; col < 256; col += 8) {
-            // Initialize an 8x8 block with zeros
+            // Initialize  8BY8 block with 0
             float block[8][8] = { 0 };
 
             // Set the DC coefficient
@@ -994,11 +958,8 @@ float** decodeRLEandDC(const char* dcFileName, const char* acFileName) {
                 acFile >> runLength >> value;
 
                 if (runLength == 0 && value == 0) {
-                    // End of Block (EOB)
                     break;
                 }
-
-                // Skip the run-length of zeros
                 zigzagIndex += runLength;
 
                 if (zigzagIndex >= 64) break;
@@ -1024,11 +985,6 @@ float** decodeRLEandDC(const char* dcFileName, const char* acFileName) {
 
     // Return the reconstructed image
     return image;
-
-
-
-
-
 }
 
 
@@ -1071,7 +1027,7 @@ int main() {
     float** cosinePattern = generateCosinePattern();
 
     // Store the cosine pattern to a RAW file
-    const char* cosineFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session01_Part02_cosine_pattern.raw";
+    const char* cosineFilename = "IVT2425_Abdulrahman_Almajdalawi_Session01_Part02_cosine_pattern.raw";
     store(cosineFilename, cosinePattern, 256, 256);
 
     // Load the parrot image
@@ -1097,7 +1053,7 @@ int main() {
     float** modifiedImage = multiplyImages(parrotImage, cosinePattern);
 
     // Store the modified image to a RAW file
-    const char* modifiedFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session01_Part03_Parrot_Cosine_multiplied.raw";
+    const char* modifiedFilename = "IVT2425_Abdulrahman_Almajdalawi_Session01_Part03_Parrot_Cosine_multiplied.raw";
     store(modifiedFilename, modifiedImage, 256, 256);
 
 
@@ -1109,8 +1065,8 @@ int main() {
 
 
     float** original_image = load("parrot_256x256.raw");
-    float** blurred_image = load("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part01_blurred.raw");
-    float** sharpened_image = load("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part01_sharpened_from_adding.raw");
+    float** blurred_image = load("IVT2425_Abdulrahman_Almajdalawi_Session02_Part01_blurred.raw");
+    float** sharpened_image = load("IVT2425_Abdulrahman_Almajdalawi_Session02_Part01_sharpened_from_adding.raw");
 
     float mse_sharpened = mse(original_image, sharpened_image);
     float mse_blurred = mse(original_image, blurred_image);
@@ -1133,12 +1089,12 @@ int main() {
 
         // Generate uniform noise
     float** uniformNoise = generateUniformNoise(-0.5f, 0.5f);
-    const char* uniformFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part02_uniform_noise.raw";
+    const char* uniformFilename = "IVT2425_Abdulrahman_Almajdalawi_Session02_Part02_uniform_noise.raw";
     store(uniformFilename, uniformNoise, 256, 256);
 
     // Generate Gaussian noise
     float** gaussianNoise = generateGaussianNoise(0.0f, 0.083f); // Variance equivalent to uniform noise
-    const char* gaussianFilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part02_gaussian_noise.raw";
+    const char* gaussianFilename = "IVT2425_Abdulrahman_Almajdalawi_Session02_Part02_gaussian_noise.raw";
     store(gaussianFilename, gaussianNoise, 256, 256);
 
 
@@ -1156,7 +1112,7 @@ int main() {
     //cout << "##################################################################\n" << endl;
 
     float** imageWithAddedNoise = getImageWithAddedNoise(original_image, 77);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session02_Part06_added_noise_image.raw", imageWithAddedNoise, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session02_Part06_added_noise_image.raw", imageWithAddedNoise, 256, 256);
 
 
 
@@ -1168,7 +1124,7 @@ int main() {
 
 
     float** matrixImage = createDctMatrix();
-    const char* matrixfilename = "Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part07_DCT_Matrix_256.raw";
+    const char* matrixfilename = "IVT2425_Abdulrahman_Almajdalawi_Session03_Part07_DCT_Matrix_256.raw";
     store(matrixfilename, matrixImage, 256, 256);
 
     //print2DArray(matrixImage, WIDTH, HEIGHT);
@@ -1178,7 +1134,7 @@ int main() {
 
     float ** transposed_matrix_image = transpose(matrixImage, 256, 256);
     float** multiplied_matrix = multiplyMatrices(matrixImage,256,256, transposed_matrix_image, 256, 256);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part07_Multiplied_inverse_original.raw", multiplied_matrix, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session03_Part07_Multiplied_inverse_original.raw", multiplied_matrix, 256, 256);
 
     // session 3 part 8
     cout << "##################################################################" << endl;
@@ -1190,30 +1146,30 @@ int main() {
     // for the parrot image signal
     // we are going to be using threshold values 10, 50, and 100 for the row extracted from the parrot image
     float* imageRow = extractRow(original_image, 10, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_random_row.raw", imageRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_random_row.raw", imageRow, 256);
     float* transformedImageRow = transformRow(imageRow, matrixImage, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_dct_random_row.raw", transformedImageRow, 256);
     float* restoredImageRow = restoreRow(transformedImageRow, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_random_row.raw", restoredImageRow, 256);
     
     //Threshold 10
     float* thresholdedtransformedImageRow01 = thresholdCoefficients(transformedImageRow,256, 10);
     float* restoredThresholdedImageRow01 = restoreRow(thresholdedtransformedImageRow01, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredThresholdedImageRow01, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_random_row_thresholded_01.raw", restoredThresholdedImageRow01, 256);
     float psnrVal01 = psnrRow(imageRow, restoredThresholdedImageRow01, 256, 255);
     std::cout << "PSNR for thresholded signal with threshold val of 10 is: " << psnrVal01 << std::endl;
     
     // Threshold 50
     float* thresholdedtransformedImageRow02 = thresholdCoefficients(transformedImageRow, 256, 50);
     float* restoredThresholdedImageRow02 = restoreRow(thresholdedtransformedImageRow02, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredThresholdedImageRow02, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_random_row_thresholded_02.raw", restoredThresholdedImageRow02, 256);
     float psnrVal02 = psnrRow(imageRow, restoredThresholdedImageRow02, 256, 255);
     std::cout << "PSNR for thresholded signal with threshold val of 50 is: " << psnrVal02 << std::endl;
     
     // Threshold 100
     float* thresholdedtransformedImageRow03 = thresholdCoefficients(transformedImageRow, 256, 100);
     float* restoredThresholdedImageRow03 = restoreRow(thresholdedtransformedImageRow03, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredThresholdedImageRow03, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_random_row_thresholded_03.raw", restoredThresholdedImageRow03, 256);
     float psnrVal03 = psnrRow(imageRow, restoredThresholdedImageRow03, 256, 255);
     std::cout << "PSNR for thresholded signal with threshold val of 100 is: " << psnrVal03 << std::endl;
 
@@ -1222,31 +1178,31 @@ int main() {
 
     // threshold values are going to be : 0.01, 0.5, 1
     float* noiseRow = extractRow(uniformNoise, 10, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_uniform_noise_random_row.raw", noiseRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_uniform_noise_random_row.raw", noiseRow, 256);
     float* transformedNoiseRow = transformRow(noiseRow, matrixImage, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_noise_random_row.raw", transformedNoiseRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_dct_noise_random_row.raw", transformedNoiseRow, 256);
     float* restoredNoiseRow = restoreRow(transformedNoiseRow, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_noise_random_row.raw", restoredNoiseRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_noise_random_row.raw", restoredNoiseRow, 256);
 
     // threshold val 1
 
     float* thresholdedtransformedNoiseRow01 = thresholdCoefficients(transformedNoiseRow, 256, 1);
     float* restoredThresholdedNoiseRow01 = restoreRow(thresholdedtransformedNoiseRow01, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_noise_random_row_01.raw", restoredThresholdedNoiseRow01, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_thresholded_noise_random_row_01.raw", restoredThresholdedNoiseRow01, 256);
     float psnrValNoise01 = psnrRow(noiseRow, restoredThresholdedNoiseRow01, 256, 1);
     std::cout << "PSNR here is for the noise row with thresholded vals of 1 : " << psnrValNoise01 << std::endl;
 
     // threshold val 0.5
     float* thresholdedtransformedNoiseRow02 = thresholdCoefficients(transformedNoiseRow, 256, 0.5);
     float* restoredThresholdedNoiseRow02 = restoreRow(thresholdedtransformedNoiseRow02, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_noise_random_row_02.raw", restoredThresholdedNoiseRow02, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_thresholded_noise_random_row_02.raw", restoredThresholdedNoiseRow02, 256);
     float psnrValNoise02 = psnrRow(noiseRow, restoredThresholdedNoiseRow02, 256, 0.5);
     std::cout << "PSNR here is for the noise row with thresholded vals of 0.5 : " << psnrValNoise02 << std::endl;
 
     // threshold val 0.01
     float* thresholdedtransformedNoiseRow03 = thresholdCoefficients(transformedNoiseRow, 256, 0.01);
     float* restoredThresholdedNoiseRow03 = restoreRow(thresholdedtransformedNoiseRow03, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_noise_random_row_03.raw", restoredThresholdedNoiseRow03, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_thresholded_noise_random_row_03.raw", restoredThresholdedNoiseRow03, 256);
     float psnrValNoise03 = psnrRow(noiseRow, restoredThresholdedNoiseRow03, 256, 0.5);
     std::cout << "PSNR here is for the noise row with thresholded vals of 0.01` : " << psnrValNoise03 << std::endl;
 
@@ -1255,36 +1211,36 @@ int main() {
 
     // Now for the cosine row pattern, we will threshold it with values of 0.01, 0.5, and 0.9
     float* cosineRow = extractRow(cosinePattern, 10, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_cosine_random_row.raw", cosineRow, 256);
     float* transformedCosineRow = transformRow(cosineRow, matrixImage, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_dct_cosine_random_row.raw", transformedCosineRow, 256);
     float* restoredCosineRow = restoreRow(transformedCosineRow, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_restored_dct_cosine_random_row.raw", restoredCosineRow, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_restored_dct_cosine_random_row.raw", restoredCosineRow, 256);
     //printRow(transformedCosineRow, 256);
 
     // now for the thresholding parts
     // threshold val = 0.9
     float* thresholdedtransformedCosineRow01 = thresholdCoefficients(transformedCosineRow, 256, 0.9);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow01, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow01, 256);
     float* restoredThresholdedCosineRow01 = restoreRow(thresholdedtransformedCosineRow01, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_cosine_random_row_01.raw", restoredThresholdedCosineRow01, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_thresholded_cosine_random_row_01.raw", restoredThresholdedCosineRow01, 256);
     float psnrValCosine01 = psnrRow(cosineRow, restoredThresholdedCosineRow01, 256, 1);
     std::cout << "PSNR val of restored thresholded cosine signal (threshold val = 0.9) with original cosine signal here is: " << psnrValCosine01 << std::endl;
     //printRow(thresholdedtransformedCosineRow01, 256);
 
     // threshold val = 0.5
     float* thresholdedtransformedCosineRow02 = thresholdCoefficients(transformedCosineRow, 256, 0.5);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow02, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow02, 256);
     float* restoredThresholdedCosineRow02 = restoreRow(thresholdedtransformedCosineRow02, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_cosine_random_row_02.raw", restoredThresholdedCosineRow02, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_thresholded_cosine_random_row_02.raw", restoredThresholdedCosineRow02, 256);
     float psnrValCosine02 = psnrRow(cosineRow, restoredThresholdedCosineRow02, 256, 1);
     std::cout << "PSNR val of restored thresholded cosine signal (threshold val = 0.5) with original cosine signal here is: " << psnrValCosine02 << std::endl;
 
     // threshold val = 0.01
     float* thresholdedtransformedCosineRow03 = thresholdCoefficients(transformedCosineRow, 256, 0.01);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow03, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_thresholdeddct_cosine_random_row.raw", thresholdedtransformedCosineRow03, 256);
     float* restoredThresholdedCosineRow03 = restoreRow(thresholdedtransformedCosineRow03, transposed_matrix_image, 256);
-    storeRawRow("Abdulrahman_Almajdalawi_IVT_exercises_Session03_Part08_resotred_thresholded_cosine_random_row_03.raw", restoredThresholdedCosineRow03, 256);
+    storeRawRow("IVT2425_Abdulrahman_Almajdalawi_Session03_Part08_resotred_thresholded_cosine_random_row_03.raw", restoredThresholdedCosineRow03, 256);
     float psnrValCosine03 = psnrRow(cosineRow, restoredThresholdedCosineRow03, 256, 1);
     std::cout << "PSNR val of restored thresholded cosine signal (threshold val = 0.01) with original cosine signal here is: " << psnrValCosine03 << std::endl;
 
@@ -1299,32 +1255,32 @@ int main() {
 
 
     float** transformedImage = transform2D(parrotImage, matrixImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_dct_transformed_image.raw", transformedImage, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_dct_transformed_image.raw", transformedImage, 256, 256);
     float** restoredImage = restoreTransform2d(transformedImage, transposed_matrix_image, matrixImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_transformed_image.raw", restoredImage, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_restored_transformed_image.raw", restoredImage, 256, 256);
 
     // now we threshold some values
     // first we try to threshold values below 10
     float** thresholdedDCT01 = threshold2D(transformedImage, 256, 10);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_01_image.raw", thresholdedDCT01, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_thresholdedDCT_01_image.raw", thresholdedDCT01, 256, 256);
     float** restoredThresholded01 = restoreTransform2d(thresholdedDCT01, transposed_matrix_image, matrixImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_01_image.raw", restoredThresholded01, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_restored_thresholdedDCT_01_image.raw", restoredThresholded01, 256, 256);
     float psnrThresold01 = psnr(parrotImage, restoredThresholded01,255);
     cout << "The value of psnr after thresholding vals below 10 is: " << psnrThresold01 << endl;
 
     //  we try to threshold values below 50
     float** thresholdedDCT02 = threshold2D(transformedImage, 256, 50);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_02_image.raw", thresholdedDCT02, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_thresholdedDCT_02_image.raw", thresholdedDCT02, 256, 256);
     float** restoredThresholded02 = restoreTransform2d(thresholdedDCT02, transposed_matrix_image, matrixImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_02_image.raw", restoredThresholded02, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_restored_thresholdedDCT_02_image.raw", restoredThresholded02, 256, 256);
     float psnrThresold02 = psnr(parrotImage, restoredThresholded02,255);
     cout << "The value of psnr after thresholding vals below 50 is: " << psnrThresold02 << endl;
 
     // then we try to threshold values below 100
     float** thresholdedDCT03 = threshold2D(transformedImage, 256, 100);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_thresholdedDCT_03_image.raw", thresholdedDCT03, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_thresholdedDCT_03_image.raw", thresholdedDCT03, 256, 256);
     float** restoredThresholded03 = restoreTransform2d(thresholdedDCT03, transposed_matrix_image, matrixImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part09_restored_thresholdedDCT_03_image.raw", restoredThresholded03, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part09_restored_thresholdedDCT_03_image.raw", restoredThresholded03, 256, 256);
     float psnrThresold03 = psnr(parrotImage, restoredThresholded03,255);
     cout << "The value of psnr after thresholding vals below 100 is: " << psnrThresold03 << endl;
 
@@ -1342,7 +1298,7 @@ int main() {
     for (int i = 0; i < 8; ++i) {
         rows[i] = QTable[i];
     };
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part10_Q_table.raw", rows, 8, 8);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part10_Q_table.raw", rows, 8, 8);
 
     //float** dct = generate8Dct();
     //float** idct = transpose(dct, 8, 8);
@@ -1358,9 +1314,9 @@ int main() {
 
 
     float** encodedImage = encode(parrotImage, 256);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part11_encodedImage.raw", encodedImage, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part11_encodedImage.raw", encodedImage, 256, 256);
     float** decodedImage = decode(encodedImage, 256);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session04_Part11_decodedImage.raw", decodedImage, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session04_Part11_decodedImage.raw", decodedImage, 256, 256);
 
 
     // Session 05 Part 12
@@ -1371,24 +1327,24 @@ int main() {
 
 
     float** downsizedImage = getDC(encodedImage);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_dcImage.raw", downsizedImage, 32, 32);
-    deltaEncodeDC(downsizedImage, 32, "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt");
-    float** imageFromDelta = deltaDecodeDC("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt", 32);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_restored_image_final.raw", imageFromDelta, 32, 32);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session05_Part12_dcImage.raw", downsizedImage, 32, 32);
+    deltaEncodeDC(downsizedImage, 32, "IVT2425_Abdulrahman_Almajdalawi_Session05_Part12_deltaEncoded.txt");
+    float** imageFromDelta = deltaDecodeDC("IVT2425_Abdulrahman_Almajdalawi_Session05_Part12_deltaEncoded.txt", 32);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session05_Part12_restored_image_final.raw", imageFromDelta, 32, 32);
 
 
     // Session 05 Part 13
     cout << "##################################################################" << endl;
     cout << "####################### SESSION 05 PART 13 #######################" << endl;
     cout << "##################################################################\n" << endl;
-    encodeRLE(encodedImage, "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_Extract_AC_RLE.txt");
+    encodeRLE(encodedImage, "IVT2425_Abdulrahman_Almajdalawi_Session05_Part13_Extract_AC_RLE.txt");
 
     // final
-    float** dctImageFinal = decodeRLEandDC("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part12_deltaEncoded.txt", "Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_Extract_AC_RLE.txt");
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_final_dct_quantized_image.raw", dctImageFinal, 256, 256);
+    float** dctImageFinal = decodeRLEandDC("IVT2425_Abdulrahman_Almajdalawi_Session05_Part12_deltaEncoded.txt", "IVT2425_Abdulrahman_Almajdalawi_Session05_Part13_Extract_AC_RLE.txt");
+    store("IVT2425_Abdulrahman_Almajdalawi_Session05_Part13_final_dct_quantized_image.raw", dctImageFinal, 256, 256);
     //now to get the restored image
     float** restoredImageFinal = decode(dctImageFinal, 256);
-    store("Abdulrahman_Almajdalawi_IVT_exercises_Session05_Part13_final_restored_image.raw", restoredImageFinal, 256, 256);
+    store("IVT2425_Abdulrahman_Almajdalawi_Session05_Part13_final_restored_image.raw", restoredImageFinal, 256, 256);
     
     // Clean up dynamically allocated memory
     for (int i = 0; i < HEIGHT; ++i) {
